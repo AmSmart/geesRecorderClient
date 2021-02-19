@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30907.101
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "geesRecorderClient.Server", "geesRecorderClient\Server\geesRecorderClient.Server.csproj", "{1CF40B98-7518-4E5A-B02B-46EC91956566}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "geesRecorderClient.Client", "geesRecorderClient\Client\geesRecorderClient.Client.csproj", "{8A0A896C-4C1C-4946-A6C2-DC084E8A14F4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "geesRecorderClient.Shared", "geesRecorderClient\Shared\geesRecorderClient.Shared.csproj", "{5A8585B9-F017-49C3-A693-FFBC7E393005}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1CF40B98-7518-4E5A-B02B-46EC91956566}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CF40B98-7518-4E5A-B02B-46EC91956566}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CF40B98-7518-4E5A-B02B-46EC91956566}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CF40B98-7518-4E5A-B02B-46EC91956566}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A0A896C-4C1C-4946-A6C2-DC084E8A14F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A0A896C-4C1C-4946-A6C2-DC084E8A14F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A0A896C-4C1C-4946-A6C2-DC084E8A14F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A0A896C-4C1C-4946-A6C2-DC084E8A14F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A8585B9-F017-49C3-A693-FFBC7E393005}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A8585B9-F017-49C3-A693-FFBC7E393005}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A8585B9-F017-49C3-A693-FFBC7E393005}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A8585B9-F017-49C3-A693-FFBC7E393005}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {67407177-48CD-4A01-9A7D-92334718BBCB}
+	EndGlobalSection
+EndGlobal
