@@ -1,0 +1,55 @@
+@if (RouteLockDTO is null)
+{
+
+}
+else if (RouteLockDTO.Locked && RouteLockDTO.LockedRoute != CurrentRoute)
+{
+    <MatTextField @bind-Value="Pin" />
+    <MatButton @onclick="async() => await Done()">Done</MatButton>
+}
+else
+{
+    @Child
+}
+
+@code{
+    [Inject]
+    public Authentication Authentication { get; set; }
+
+    [Inject]
+    protected IMatToaster Toaster { get; set; }
+
+    [Inject]
+    protected NavigationManager NavigationManager { get; set; }
+
+    public RouteLockDTO RouteLockDTO { get; set; }
+
+    [Parameter]
+    public RenderFragment Child { get; set; }
+
+    public string Pin { get; set; }
+
+    public string CurrentRoute { get; set; }
+
+    async Task Done()
+    {
+        bool verified = await Authentication.VerifyPin(Pin);
+        if (verified)
+        {
+            RouteLockDTO.Locked = false;
+            Toaster.Add("Pin Valid", MatToastType.Success);
+        }
+        else
+        {
+            Toaster.Add("Invalid Pin", MatToastType.Danger);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        RouteLockDTO = await Authentication.GetRouteRestriction();
+        CurrentRoute = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        Console.WriteLine($"Cuurent Route: {CurrentRoute}");
+    }
+
+}
