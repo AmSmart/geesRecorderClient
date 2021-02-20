@@ -13,26 +13,30 @@ namespace geesRecorderClient.Client.Pages
 {
     public partial class Index : ComponentBase
     {
+
         [Inject]
         public Authentication Authentication { get; set; }
-
-        public SignUpDTO SignUpDTO { get; set; } = new SignUpDTO();
         
+        public SignUpDTO SignUpDTO { get; set; } = new SignUpDTO();
+
         public bool LoggedIn { get; set; }
+
+        public bool SignUpToggle { get; set; } = true;
 
         protected override async Task OnInitializedAsync()
         {
             LoggedIn = await Authentication.IsLoggedInAsync();
         }
 
-        public async Task SignUpSubmit()
+        public async void SignUpSubmit()
+        {
+
+        }
+        public async void SignInSubmit()
         {
 
         }
 
-        public async Task SignInClicked()
-        {
-
-        }
+        public void Toggle() => SignUpToggle = !SignUpToggle;
     }
 }
