@@ -9,7 +9,7 @@ namespace geesRecorderClient.Shared
     public class AppConstants
     {
         public const string ApiBaseAddress = "https://gees-recorder.herokuapp.com/api/";
-        public const string ApiSignUp = "/user/signup";
-        public const string ApiSignIn = "/user/signin";
+        public const string ApiSignUp = "/auth/signup";
+        public const string ApiSignIn = "/auth/signin";
     }
 }

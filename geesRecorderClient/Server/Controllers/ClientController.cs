@@ -1,4 +1,5 @@
-﻿using geesRecorderClient.Shared.DTOs;
+﻿using geesRecorderClient.Shared;
+using geesRecorderClient.Shared.DTOs;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -6,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -24,6 +26,7 @@ namespace geesRecorderClient.Server.Controllers
             _webHostEnvironment = webHostEnvironment;
             _statePath = Path.Combine(_webHostEnvironment.ContentRootPath, "state.json");
             _httpClient = httpClientFactory.CreateClient();
+            _httpClient.BaseAddress = new Uri(AppConstants.ApiBaseAddress);
 
             if(!System.IO.File.Exists(_statePath))
             {
@@ -46,7 +49,17 @@ namespace geesRecorderClient.Server.Controllers
         [HttpPost("signup")]
         public async Task<IActionResult> SignUp([FromBody] SignUpDTO dto)
         {
-            return Ok("");
+            var response = await _httpClient.PostAsJsonAsync<SignUpDTO>(AppConstants.ApiSignUp, dto);
+            if (response.IsSuccessStatusCode)
+            {
+                var token = JsonSerializer.Deserialize<JwtTokenDTO>(await response.Content.ReadAsStringAsync(), new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                return Ok(token);
+            }
+
+            return Ok(await response.Content.ReadAsStringAsync());
         }
 
 

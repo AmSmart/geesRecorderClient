@@ -1,11 +1,13 @@
+@using System.ComponentModel.DataAnnotations
 @if (RouteLockDTO is null)
 {
 
 }
 else if (RouteLockDTO.Locked && RouteLockDTO.LockedRoute != CurrentRoute)
 {
-    <MatTextField @bind-Value="Pin" />
-    <MatButton @onclick="async() => await Done()">Done</MatButton>
+        <MatTextField Type="Password" @bind-Value="Pin" />
+        <MatButton @onclick="async() => await Done()">Done</MatButton>
+        <MatButton @onclick="GoToAllowed">Go to allowed page</MatButton>
 }
 else
 {
@@ -27,6 +29,7 @@ else
     [Parameter]
     public RenderFragment Child { get; set; }
 
+    [RegularExpression("^[0-9]*$", ErrorMessage = "Pin must be numeric")]
     public string Pin { get; set; }
 
     public string CurrentRoute { get; set; }
@@ -43,6 +46,11 @@ else
         {
             Toaster.Add("Invalid Pin", MatToastType.Danger);
         }
+    }
+
+    void GoToAllowed()
+    {
+        NavigationManager.NavigateTo(RouteLockDTO.LockedRoute);
     }
 
     protected override async Task OnInitializedAsync()

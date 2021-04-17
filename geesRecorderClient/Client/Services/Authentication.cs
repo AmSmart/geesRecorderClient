@@ -62,7 +62,7 @@ namespace geesRecorderClient.Client.Services
             var state = JsonSerializer.Deserialize<ServerStateDTO>(responseString, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
-            });            ;
+            });
             return state.Pin == inputPin;
 
         }

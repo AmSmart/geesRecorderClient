@@ -19,6 +19,8 @@ namespace geesRecorderClient.Client.Pages
 
         public SignUpDTO SignUpDTO { get; set; } = new SignUpDTO();
 
+        public SignInDTO SignInDTO { get; set; } = new SignInDTO();
+
         public bool LoggedIn { get; set; }
 
         public bool SignUpToggle { get; set; } = true;

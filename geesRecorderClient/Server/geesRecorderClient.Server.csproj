@@ -18,5 +18,8 @@
     <ProjectReference Include="..\Shared\geesRecorderClient.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
 
 </Project>
