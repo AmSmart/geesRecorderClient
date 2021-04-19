@@ -1,5 +1,4 @@
 ﻿@page "/"
-@using geesRecorderClient.Client.Pages.Dashboard
 @inject HttpClient HttpClient
 
 <h1>Hello!</h1>
@@ -19,35 +18,35 @@ Welcome to geesRecorder.
 }
 else
 {
-    <ProjectDashboard />
+    <Dashboard/>
 }
 
 @code{
     protected RenderFragment SignUp => __builder =>
-            {
-            <h5>Create a new account!</h5>
-            <EditForm Model="@SignUpDTO" OnValidSubmit="SignUpSubmit">
-                <DataAnnotationsValidator />
-                <ValidationSummary />
-                <MatTextField class="form-control" Type="Email" HideClearButton="false" Label="Email" @bind-Value="SignUpDTO.Email" />
-                <MatTextField class="form-control" Type="Password" Label="Password" @bind-Value="SignUpDTO.Password" />
-                <MatTextField class="form-control" Type="Password" Label="Confirm Password" @bind-Value="SignUpDTO.ConfirmPassword" />
-                <MatTextField class="form-control" Type="Password" Label="4-digit Pin" @bind-Value="SignUpDTO.Pin" />
-                <MatButton class="btn btn-primary">Submit</MatButton>
-            </EditForm>
-            <a @onclick="Toggle" href=""><u>Already have an account? Sign In</u></a>
-            };
+    {
+        <h5>Create a new account!</h5>
+        <EditForm Model="@SignUpDTO" OnValidSubmit="SignUpSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <MatTextField class="form-control" Type="Email" HideClearButton="false" Label="Email" @bind-Value="SignUpDTO.Email" />
+            <MatTextField class="form-control" Type="Password" Label="Password" @bind-Value="SignUpDTO.Password" />
+            <MatTextField class="form-control" Type="Password" Label="Confirm Password" @bind-Value="SignUpDTO.ConfirmPassword" />
+            <MatTextField class="form-control" Type="Password" Label="4-digit Pin" @bind-Value="SignUpDTO.Pin" />
+            <MatButton class="btn btn-primary">Submit</MatButton>
+        </EditForm>
+        <a @onclick="Toggle" href=""><u>Already have an account? Sign In</u></a>
+    };
 
     protected RenderFragment SignIn => __builder =>
-        {
-            <h5>Sign in to an existing account!</h5>
-            <EditForm Model="@SignInDTO" OnValidSubmit="SignInSubmit">
-                <DataAnnotationsValidator />
-                <ValidationSummary />
-                <MatTextField class="form-control" HideClearButton="false" Label="Email" @bind-Value="@SignUpDTO.Email" />
-                <MatTextField class="form-control" Type="Password" Label="Password" @bind-Value="@SignUpDTO.Password" />
-                <MatButton class="btn btn-primary">Submit</MatButton>
-            </EditForm>
-            <a @onclick="Toggle" href=""><u>Don't have an account? Sign Up</u></a>
-        };
+    {
+        <h5>Sign in to an existing account!</h5>
+        <EditForm Model="@SignInDTO" OnValidSubmit="SignInSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <MatTextField class="form-control" HideClearButton="false" Label="Email" @bind-Value="@SignInDTO.Email" />
+            <MatTextField class="form-control" Type="Password" Label="Password" @bind-Value="@SignInDTO.Password" />
+            <MatButton class="btn btn-primary">Submit</MatButton>
+        </EditForm>
+        <a @onclick="Toggle" href=""><u>Don't have an account? Sign Up</u></a>
+    };
 }

@@ -19,4 +19,16 @@
         currentCount++;
     }
 
+    [Inject]
+    public Authentication Authentication { get; set; }
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        string currentRoute = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        await Authentication.LockRoute(currentRoute);
+    }
+
 }

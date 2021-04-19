@@ -1,5 +1,6 @@
 ﻿using geesRecorderClient.Client.Services;
 using geesRecorderClient.Shared.DTOs;
+using MatBlazor;
 using Microsoft.AspNetCore.Components;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,12 @@ namespace geesRecorderClient.Client.Pages
         [Inject]
         public Authentication Authentication { get; set; }
 
+        [Inject]
+        protected NavigationManager NavigationManager { get; set; }
+
+        [Inject]
+        protected IMatToaster Toaster { get; set; }
+
         public SignUpDTO SignUpDTO { get; set; } = new SignUpDTO();
 
         public SignInDTO SignInDTO { get; set; } = new SignInDTO();
@@ -30,13 +37,31 @@ namespace geesRecorderClient.Client.Pages
             LoggedIn = await Authentication.IsLoggedInAsync();
         }
 
-        public async void SignUpSubmit()
+        public async Task SignUpSubmit()
         {
+            var result = await Authentication.SignUpAsync(SignUpDTO);
+            if (result.Succeeded)
+            {
+                NavigationManager.NavigateTo(nameof(Dashboard));
+            }
+            else
+            {
+                Toaster.Add("Error!", MatToastType.Danger);
+            }
 
         }
-        public async void SignInSubmit()
-        {
 
+        public async Task SignInSubmit()
+        {
+            var result = await Authentication.SignInAsync(SignInDTO);
+            if (result.Succeeded)
+            {
+                NavigationManager.NavigateTo(nameof(Dashboard));
+            }
+            else
+            {
+                Toaster.Add("Error!", MatToastType.Danger);
+            }
         }
 
         public void Toggle() => SignUpToggle = !SignUpToggle;        

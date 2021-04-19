@@ -1,13 +1,14 @@
 @using System.ComponentModel.DataAnnotations
+
 @if (RouteLockDTO is null)
 {
 
 }
 else if (RouteLockDTO.Locked && RouteLockDTO.LockedRoute != CurrentRoute)
 {
-        <MatTextField Type="Password" @bind-Value="Pin" />
-        <MatButton @onclick="async() => await Done()">Done</MatButton>
-        <MatButton @onclick="GoToAllowed">Go to allowed page</MatButton>
+    <MatTextField Type="Password" @bind-Value="Pin" />
+    <MatButton @onclick="async() => await Done()">Done</MatButton>
+    <MatButton @onclick="GoToAllowed">Go to allowed page</MatButton>
 }
 else
 {
@@ -55,9 +56,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        RouteLockDTO = await Authentication.GetRouteRestriction();
+        RouteLockDTO = await Authentication.GetRouteLockState();
         CurrentRoute = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
-        Console.WriteLine($"Cuurent Route: {CurrentRoute}");
     }
 
 }

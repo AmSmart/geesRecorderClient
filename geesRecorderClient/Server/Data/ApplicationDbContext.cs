@@ -28,6 +28,8 @@ namespace geesRecorderClient.Server.Data
 
         public DbSet<DataCollectionProject> DataCollectionProjects { get; set; }
 
+        public DbSet<ServerState> ServerState { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

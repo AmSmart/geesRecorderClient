@@ -1,7 +1,10 @@
-﻿using geesRecorderClient.Shared;
+﻿using geesRecorderClient.Server.Data;
+using geesRecorderClient.Shared;
 using geesRecorderClient.Shared.DTOs;
+using geesRecorderClient.Shared.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,54 +17,128 @@ using System.Threading.Tasks;
 namespace geesRecorderClient.Server.Controllers
 {
     [ApiController]
-    [Route("client")]
+    [Route("auth")]
     public class ClientController : ControllerBase
     {
         private readonly IWebHostEnvironment _webHostEnvironment;
-        private readonly string _statePath;
+        private readonly ApplicationDbContext _dbContext;
         private readonly HttpClient _httpClient;
+        private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
 
-        public ClientController(IWebHostEnvironment webHostEnvironment, IHttpClientFactory httpClientFactory)
+        public ClientController(IWebHostEnvironment webHostEnvironment,
+            IHttpClientFactory httpClientFactory,
+            ApplicationDbContext dbContext)
         {
             _webHostEnvironment = webHostEnvironment;
-            _statePath = Path.Combine(_webHostEnvironment.ContentRootPath, "state.json");
+            _dbContext = dbContext;
             _httpClient = httpClientFactory.CreateClient();
             _httpClient.BaseAddress = new Uri(AppConstants.ApiBaseAddress);
 
-            if(!System.IO.File.Exists(_statePath))
+            if (_dbContext.ServerState.FirstOrDefault() is null)
             {
-                var file = System.IO.File.Create(_statePath);
-                file.Close();
-
-                System.IO.File.WriteAllText(_statePath, JsonSerializer.Serialize(new ServerStateDTO
+                _dbContext.ServerState.Add(new ServerState
                 {
                     AccessToken = "",
                     LoggedIn = false,
-                    Pin = ""
-                }));
+                    Pin = "",
+                    LockedRoute = "",
+                    RouteLockActivated = false
+                });
+                _dbContext.SaveChanges();
             }
         }
 
         [HttpGet("state")]
         public IActionResult GetState()
-            => Ok(JsonSerializer.Deserialize<ServerStateDTO>(System.IO.File.ReadAllText(_statePath)));
+        {
+            var state = _dbContext.ServerState.First();
+            //Console.WriteLine(state.)
+            return Ok(state);
+        }
+
 
         [HttpPost("signup")]
         public async Task<IActionResult> SignUp([FromBody] SignUpDTO dto)
         {
-            var response = await _httpClient.PostAsJsonAsync<SignUpDTO>(AppConstants.ApiSignUp, dto);
+            var response = await _httpClient.PostAsJsonAsync(AppConstants.ApiSignUp, dto);
             if (response.IsSuccessStatusCode)
             {
-                var token = JsonSerializer.Deserialize<JwtTokenDTO>(await response.Content.ReadAsStringAsync(), new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
-                return Ok(token);
+                var token = JsonSerializer.Deserialize<JwtTokenDTO>(await response.Content.ReadAsStringAsync(), _jsonOptions);
+                await UpdateServerStateAsync(accessToken: token.Token, loggedIn: true);
+                return Ok();
             }
 
-            return Ok(await response.Content.ReadAsStringAsync());
+            return BadRequest(await response.Content.ReadAsStringAsync());
         }
 
+        [HttpPost("signin")]
+        public async Task<IActionResult> SignIn([FromBody] SignInDTO dto)
+        {
+            var response = await _httpClient.PostAsJsonAsync(AppConstants.ApiSignIn, dto);
+            if (response.IsSuccessStatusCode)
+            {
+                var token = JsonSerializer.Deserialize<JwtTokenDTO>(await response.Content.ReadAsStringAsync(), _jsonOptions);
+                await UpdateServerStateAsync(accessToken: token.Token, loggedIn: true);
+                return Ok();
+            }
+            return Unauthorized(await response.Content.ReadAsStringAsync());
+        }
 
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> Refresh()
+        {
+            var response = await _httpClient.PostAsJsonAsync(AppConstants.ApiRefreshToken, new { });
+            if (response.IsSuccessStatusCode)
+            {
+                var token = JsonSerializer.Deserialize<JwtTokenDTO>(await response.Content.ReadAsStringAsync(), _jsonOptions);
+                await UpdateServerStateAsync(accessToken: token.Token, loggedIn: true);
+                return Ok();
+            }
+            await UpdateServerStateAsync(accessToken: "", loggedIn: false);
+            return Unauthorized(await response.Content.ReadAsStringAsync());
+        }
+
+        [HttpGet("dashboard")]
+        public async Task<IActionResult> GetDashboard()
+        {
+            var projects = await _dbContext.Projects.ToListAsync();
+            var dashboardDTO = new DashboardDTO
+            {
+                UserName = "Smart",
+                Projects = projects
+            };
+
+            return Ok(dashboardDTO);
+        }
+
+        [HttpPost("lock-route")]
+        public async Task<IActionResult> LockRoute(string route)
+        {
+            await UpdateServerStateAsync(routeLockActivated: true, lockedRoute: route);
+            return Ok();
+
+        }
+
+        [HttpPatch("unlock-route")]
+        public async Task<IActionResult> UnlockRoute()
+        {
+            await UpdateServerStateAsync(routeLockActivated: false, lockedRoute: "");
+            return Ok();
+        }
+
+        private async Task UpdateServerStateAsync(string accessToken = null, bool? loggedIn = null, string pin = null,
+            bool? routeLockActivated = null, string lockedRoute = null)
+        {
+            var serverState = _dbContext.ServerState.First();
+            serverState.AccessToken = accessToken ?? serverState.AccessToken;
+            serverState.LoggedIn = loggedIn ?? serverState.LoggedIn;
+            serverState.Pin = pin ?? serverState.Pin;
+            serverState.RouteLockActivated = routeLockActivated ?? serverState.RouteLockActivated;
+            serverState.LockedRoute = lockedRoute ?? lockedRoute;
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }
