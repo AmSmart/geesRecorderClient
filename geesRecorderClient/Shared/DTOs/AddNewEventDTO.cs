@@ -4,18 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace geesRecorderClient.Shared.Models
+namespace geesRecorderClient.Shared.DTOs
 {
-    public class Event
+    public record AddNewEventDTO
     {
-        public int Id { get; set; }
+        public int ProjectId { get; set; }
 
-        public string Name { get; set; }
+        public string EventName { get; set; }
 
         public DateTime Start { get; set; }
 
         public DateTime End { get; set; }
-
-        public virtual AttendanceProject AttendanceProject { get; set; }
     }
 }

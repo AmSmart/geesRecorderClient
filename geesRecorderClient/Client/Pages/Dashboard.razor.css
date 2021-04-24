@@ -1,0 +1,11 @@
+﻿.demo-mat-card {
+    max-width: 250px;
+}
+
+.demo-mat-card-content {
+    padding: 1rem;
+}
+
+.demo-mat-card-clean-margin {
+    margin: 0px;
+}

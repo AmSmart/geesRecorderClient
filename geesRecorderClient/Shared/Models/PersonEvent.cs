@@ -10,9 +10,9 @@ namespace geesRecorderClient.Shared.Models
     {
         public int Id { get; set; }
 
-        public Event Event { get; set; }
+        public virtual Event Event { get; set; }
 
-        public Person Person { get; set; }
+        public virtual Person Person { get; set; }
 
         public DateTime TimeIn { get; set; }
 

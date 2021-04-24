@@ -1,1 +1,82 @@
 @page "/dashboard"
+
+<div class="text-center">
+    <h5>Your Projects</h5>
+</div>
+
+<div class="mat-layout-grid">
+    <div class="mat-layout-grid-inner">
+        @foreach (var project in Projects)
+        {
+            string imagePath = project.Type switch
+            {
+                ProjectType.Attendance => "/img/attendance.jpg",
+                ProjectType.DataCollection => "/img/survey.jpg",
+                _ => ""
+            };
+
+            <div class="mat-layout-grid-cell">
+                <MatCard class="demo-mat-card">
+                    <MatCardContent>
+                        <MatCardMedia Wide="true" ImageUrl="@imagePath"></MatCardMedia>
+                        <div class="demo-mat-card-content">
+                            <MatSubtitle2 class="demo-mat-card-clean-margin">
+                                @project.Name
+                            </MatSubtitle2>
+                        </div>
+                    </MatCardContent>
+                    <MatCardActions>
+                        <MatButton OnClick="Navigate">Open</MatButton>
+                        <MatButton class="text-danger">Delete</MatButton>
+                    </MatCardActions>
+                </MatCard>
+            </div>
+        }
+    </div>
+</div>
+
+
+@code{
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    public List<Project> Projects { get; set; } = new()
+    {
+            new Project
+            {
+                Id = 1,
+                Name = "500L CPE",
+                Type = ProjectType.Attendance
+            },
+            new Project
+            {
+                Id = 2,
+                Name = "ASUU Strike Survey",
+                Type = ProjectType.DataCollection
+            },
+            new Project
+            {
+                Id = 3,
+                Name = "300L CPE",
+                Type = ProjectType.Attendance
+            },
+            new Project
+            {
+                Id = 4,
+                Name = "Tech Jobs Survey",
+                Type = ProjectType.DataCollection
+            },
+            new Project
+            {
+                Id = 5,
+                Name = "300L CPE",
+                Type = ProjectType.Attendance
+            }
+    };
+
+    public void Navigate()
+    {
+        NavigationManager.NavigateTo("/attendance/enrol");
+    }
+}

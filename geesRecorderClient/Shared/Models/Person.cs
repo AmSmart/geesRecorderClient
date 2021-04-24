@@ -19,6 +19,8 @@ namespace geesRecorderClient.Shared.Models
 
         // TODO: Annotate as key
         public string CustomId { get; set; }
+
+        public virtual List<AttendanceProject> AttendanceProjects { get; set; }
     }
 }
 

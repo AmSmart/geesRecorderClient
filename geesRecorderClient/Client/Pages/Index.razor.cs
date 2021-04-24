@@ -28,13 +28,19 @@ namespace geesRecorderClient.Client.Pages
 
         public SignInDTO SignInDTO { get; set; } = new SignInDTO();
 
-        public bool LoggedIn { get; set; }
+        public bool? LoggedIn { get; set; } = null;
 
         public bool SignUpToggle { get; set; } = true;
 
         protected override async Task OnInitializedAsync()
         {
             LoggedIn = await Authentication.IsLoggedInAsync();
+
+            if(LoggedIn == true)
+            {
+                await Task.Delay(3000);
+                NavigationManager.NavigateTo(nameof(Dashboard));
+            }
         }
 
         public async Task SignUpSubmit()

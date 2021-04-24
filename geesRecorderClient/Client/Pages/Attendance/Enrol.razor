@@ -1,0 +1,47 @@
+﻿@page "/attendance/enrol"
+@inject HttpClient HttpClient
+@using Microsoft.AspNetCore.SignalR.Client
+
+<h5>Connection Status: @connectionStatus</h5>
+<h5>Status Message: @statusMessage</h5>
+
+@code{
+
+    string url = "https://localhost:5001/fingerprinthub";
+
+    HubConnection _connection = null;
+    bool isConnected = false;
+    string connectionStatus = "Closed";
+    string statusMessage = "Nil";
+
+    private async Task ConnectToServer()
+    {
+        _connection = new HubConnectionBuilder()
+            .WithUrl(url)
+            .Build();
+
+        await _connection.StartAsync();
+        isConnected = true;
+        connectionStatus = "Connected 😜";
+
+        _connection.Closed += async (s) =>
+        {
+            isConnected = false;
+            connectionStatus = "Disconnected";
+            await _connection.StartAsync();
+            isConnected = true;
+        };
+
+        _connection.On<int, string>("state", (code, message) =>
+        {
+            statusMessage = message;
+            StateHasChanged();
+        });
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ConnectToServer();
+        //await _connection.InvokeAsync("enrol");
+    }
+}

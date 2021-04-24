@@ -18,7 +18,7 @@ namespace geesRecorderClient.Server.Controllers
 {
     [ApiController]
     [Route("auth")]
-    public class ClientController : ControllerBase
+    public class AuthController : ControllerBase
     {
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ApplicationDbContext _dbContext;
@@ -28,7 +28,7 @@ namespace geesRecorderClient.Server.Controllers
             PropertyNameCaseInsensitive = true
         };
 
-        public ClientController(IWebHostEnvironment webHostEnvironment,
+        public AuthController(IWebHostEnvironment webHostEnvironment,
             IHttpClientFactory httpClientFactory,
             ApplicationDbContext dbContext)
         {
@@ -55,7 +55,6 @@ namespace geesRecorderClient.Server.Controllers
         public IActionResult GetState()
         {
             var state = _dbContext.ServerState.First();
-            //Console.WriteLine(state.)
             return Ok(state);
         }
 

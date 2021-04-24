@@ -1,5 +1,6 @@
 ﻿using geesRecorderClient.Shared.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,8 +37,13 @@ namespace geesRecorderClient.Server.Data
 
             modelBuilder.Entity<Person>()
                 .Property(x => x.FingerprintIds)
-                .HasConversion(v => JsonSerializer.Serialize(v, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }),
-                v => JsonSerializer.Deserialize<List<int>>(v, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }));
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, null),
+                    v => JsonSerializer.Deserialize<List<int>>(v, null),
+                    new ValueComparer<List<int>>(
+                        (c1, c2) => c1.SequenceEqual(c2),
+                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                        c => c.ToList()));
 
             modelBuilder.Entity<Project>()
                 .HasDiscriminator(x => x.Type)

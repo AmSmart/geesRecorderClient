@@ -8,10 +8,8 @@ namespace geesRecorderClient.Shared.Models
 {
     public class AttendanceProject : Project
     {
-        public List<Person> Persons { get; set; }
+        public virtual List<Person> Persons { get; set; }
 
-        public List<Event> Events { get; set; }
-
-        public List<PersonEvent> PersonEvents { get; set; }
+        public virtual List<Event> Events { get; set; }
     }
 }

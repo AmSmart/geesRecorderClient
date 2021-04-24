@@ -9,14 +9,29 @@ using geesRecorderClient.Server.Data;
 namespace geesRecorderClient.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20210419002125_ExtraSetup")]
-    partial class ExtraSetup
+    [Migration("20210422001403_DBSetup")]
+    partial class DBSetup
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "5.0.2");
+                .HasAnnotation("ProductVersion", "5.0.5");
+
+            modelBuilder.Entity("AttendanceProjectPerson", b =>
+                {
+                    b.Property<int>("AttendanceProjectsId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PersonsId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("AttendanceProjectsId", "PersonsId");
+
+                    b.HasIndex("PersonsId");
+
+                    b.ToTable("AttendanceProjectPerson");
+                });
 
             modelBuilder.Entity("geesRecorderClient.Shared.Models.Event", b =>
                 {
@@ -49,9 +64,6 @@ namespace geesRecorderClient.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("AttendanceProjectId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("CustomId")
                         .HasColumnType("TEXT");
 
@@ -66,8 +78,6 @@ namespace geesRecorderClient.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AttendanceProjectId");
-
                     b.ToTable("Persons");
                 });
 
@@ -75,9 +85,6 @@ namespace geesRecorderClient.Server.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("AttendanceProjectId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int?>("EventId")
@@ -93,8 +100,6 @@ namespace geesRecorderClient.Server.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AttendanceProjectId");
 
                     b.HasIndex("EventId");
 
@@ -162,26 +167,32 @@ namespace geesRecorderClient.Server.Migrations
                     b.HasDiscriminator().HasValue(2);
                 });
 
-            modelBuilder.Entity("geesRecorderClient.Shared.Models.Event", b =>
+            modelBuilder.Entity("AttendanceProjectPerson", b =>
                 {
                     b.HasOne("geesRecorderClient.Shared.Models.AttendanceProject", null)
-                        .WithMany("Events")
-                        .HasForeignKey("AttendanceProjectId");
+                        .WithMany()
+                        .HasForeignKey("AttendanceProjectsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("geesRecorderClient.Shared.Models.Person", null)
+                        .WithMany()
+                        .HasForeignKey("PersonsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
-            modelBuilder.Entity("geesRecorderClient.Shared.Models.Person", b =>
+            modelBuilder.Entity("geesRecorderClient.Shared.Models.Event", b =>
                 {
-                    b.HasOne("geesRecorderClient.Shared.Models.AttendanceProject", null)
-                        .WithMany("Persons")
+                    b.HasOne("geesRecorderClient.Shared.Models.AttendanceProject", "AttendanceProject")
+                        .WithMany("Events")
                         .HasForeignKey("AttendanceProjectId");
+
+                    b.Navigation("AttendanceProject");
                 });
 
             modelBuilder.Entity("geesRecorderClient.Shared.Models.PersonEvent", b =>
                 {
-                    b.HasOne("geesRecorderClient.Shared.Models.AttendanceProject", null)
-                        .WithMany("PersonEvents")
-                        .HasForeignKey("AttendanceProjectId");
-
                     b.HasOne("geesRecorderClient.Shared.Models.Event", "Event")
                         .WithMany()
                         .HasForeignKey("EventId");
@@ -198,10 +209,6 @@ namespace geesRecorderClient.Server.Migrations
             modelBuilder.Entity("geesRecorderClient.Shared.Models.AttendanceProject", b =>
                 {
                     b.Navigation("Events");
-
-                    b.Navigation("PersonEvents");
-
-                    b.Navigation("Persons");
                 });
 #pragma warning restore 612, 618
         }

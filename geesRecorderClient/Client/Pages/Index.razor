@@ -1,11 +1,15 @@
 ﻿@page "/"
 @inject HttpClient HttpClient
 
-<h1>Hello!</h1>
+<h1>Hellos!</h1>
 
 Welcome to geesRecorder.
 
-@if (!LoggedIn)
+@if (LoggedIn is null)
+{
+    <Loading />
+}
+else if (LoggedIn == false)
 {
     if (SignUpToggle)
     {
@@ -16,14 +20,10 @@ Welcome to geesRecorder.
         @SignIn
     }
 }
-else
-{
-    <Dashboard/>
-}
 
 @code{
     protected RenderFragment SignUp => __builder =>
-    {
+        {
         <h5>Create a new account!</h5>
         <EditForm Model="@SignUpDTO" OnValidSubmit="SignUpSubmit">
             <DataAnnotationsValidator />
@@ -35,7 +35,7 @@ else
             <MatButton class="btn btn-primary">Submit</MatButton>
         </EditForm>
         <a @onclick="Toggle" href=""><u>Already have an account? Sign In</u></a>
-    };
+        };
 
     protected RenderFragment SignIn => __builder =>
     {
