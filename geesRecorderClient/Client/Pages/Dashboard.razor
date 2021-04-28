@@ -1,7 +1,10 @@
 @page "/dashboard"
 
 <div class="text-center">
-    <h5>Your Projects</h5>
+    <h5>@($"{UserName}'s Projects")</h5>
+    <MatIconButton OnClick="(e => _dialogIsOpen = true)">
+        <MatIcon>@MatIconNames.Add_circle</MatIcon>
+    </MatIconButton>
 </div>
 
 <div class="mat-layout-grid">
@@ -26,7 +29,7 @@
                         </div>
                     </MatCardContent>
                     <MatCardActions>
-                        <MatButton OnClick="Navigate">Open</MatButton>
+                        <MatButton OnClick="() => Navigate(project.Id)">Open</MatButton>
                         <MatButton class="text-danger">Delete</MatButton>
                     </MatCardActions>
                 </MatCard>
@@ -35,48 +38,112 @@
     </div>
 </div>
 
+<MatDialog @bind-IsOpen="@_dialogIsOpen">
+    <MatDialogTitle>Create Project</MatDialogTitle>
+    <MatDialogContent>
+        <EditForm Model="CreateProjectDTO" OnValidSubmit="CreateProject">
+            <p>Enter the project details</p>
+            <MatTextField @bind-Value="CreateProjectDTO.Name" Label="Project Name"></MatTextField>
+            <MatSelect @bind-Value="@(CreateProjectDTO.Type)" Label="Project Type">
+                <MatOption TValue="int" Value="(int)ProjectType.Attendance">Attendance</MatOption>
+                <MatOption TValue="int" Value="(int)ProjectType.DataCollection">Data Collection/Survey</MatOption>
+            </MatSelect>
+        </EditForm>
+
+
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@(e => { _dialogIsOpen = false; })">No Thanks</MatButton>
+        <MatButton Type="submit" OnClick="@CreateProject">OK</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
 
 @code{
+
+    bool _dialogIsOpen;
+
+    public CreateProjectDTO CreateProjectDTO { get; set; } = new();
 
     [Inject]
     public NavigationManager NavigationManager { get; set; }
 
+    [Inject]
+    public ApiClient ApiClient { get; set; }
+
+    [Inject]
+    protected IMatToaster Toaster { get; set; }
+
     public List<Project> Projects { get; set; } = new()
     {
-            new Project
-            {
-                Id = 1,
-                Name = "500L CPE",
-                Type = ProjectType.Attendance
-            },
-            new Project
-            {
-                Id = 2,
-                Name = "ASUU Strike Survey",
-                Type = ProjectType.DataCollection
-            },
-            new Project
-            {
-                Id = 3,
-                Name = "300L CPE",
-                Type = ProjectType.Attendance
-            },
-            new Project
-            {
-                Id = 4,
-                Name = "Tech Jobs Survey",
-                Type = ProjectType.DataCollection
-            },
-            new Project
-            {
-                Id = 5,
-                Name = "300L CPE",
-                Type = ProjectType.Attendance
-            }
+        //new Project
+        //{
+        //    Id = 1,
+        //    Name = "500L CPE",
+        //    Type = ProjectType.Attendance
+        //},
+        //new Project
+        //{
+        //    Id = 2,
+        //    Name = "ASUU Strike Survey",
+        //    Type = ProjectType.DataCollection
+        //},
+        //new Project
+        //{
+        //    Id = 3,
+        //    Name = "300L CPE",
+        //    Type = ProjectType.Attendance
+        //},
+        //new Project
+        //{
+        //    Id = 4,
+        //    Name = "Tech Jobs Survey",
+        //    Type = ProjectType.DataCollection
+        //},
+        //new Project
+        //{
+        //    Id = 5,
+        //    Name = "300L CPE",
+        //    Type = ProjectType.Attendance
+        //}
     };
 
-    public void Navigate()
+    public string UserName { get; set; } = "";
+
+    public void Navigate(int id)
     {
-        NavigationManager.NavigateTo("/attendance/enrol");
+        NavigationManager.NavigateTo($"/attendance/project/{id}");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetDashboard();
+        if (result.Succeeded)
+        {
+            InitialiseDashboard(result.Data);
+        }
+        else
+        {
+            throw new Exception();
+        }
+    }
+
+    void InitialiseDashboard(DashboardDTO dto)
+    {
+        Projects = dto.Projects;
+        UserName = dto.UserName;
+    }
+
+    public async Task CreateProject()
+    {
+        _dialogIsOpen = false;
+        Console.WriteLine(CreateProjectDTO.Type);
+
+        var result = await ApiClient.CreateProject(CreateProjectDTO.Name, (ProjectType)CreateProjectDTO.Type);
+        if (result.Succeeded)
+        {
+            Toaster.Add("Project Cration Successful", MatToastType.Success);
+            await OnInitializedAsync();
+        }
     }
 }

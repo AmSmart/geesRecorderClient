@@ -1,47 +1,90 @@
-﻿@page "/attendance/enrol"
+﻿@page "/attendance/enrol/{ProjectId:int}"
+@implements IAsyncDisposable
 @inject HttpClient HttpClient
 @using Microsoft.AspNetCore.SignalR.Client
+@using System.IO
 
-<h5>Connection Status: @connectionStatus</h5>
-<h5>Status Message: @statusMessage</h5>
+<EditForm Model="EnrolPersonDTO" OnValidSubmit="EnrolPerson">
+    <p>Enter the person's details</p>
+    <MatTextField @bind-Value="EnrolPersonDTO.FirstName" Label="First Name" />
+    <MatTextField @bind-Value="EnrolPersonDTO.LastName" Label="Last Name" />
+    <MatTextField @bind-Value="EnrolPersonDTO.CustomId" Label="Custom ID" />
+    <MatButton Type="submit">Enrol</MatButton>
+</EditForm>
+
+<MatDialog @bind-IsOpen="@_dialogIsOpen">
+    <MatDialogTitle>Scan your finger</MatDialogTitle>
+    <MatDialogContent>
+        @*<EditForm>
+
+            </EditForm>*@
+        <p>Fingerprint Scanner Status: @_statusMessage</p>
+
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@(e => { _dialogIsOpen = false; })">No Thanks</MatButton>
+        <MatButton Type="submit">OK</MatButton>
+    </MatDialogActions>
+</MatDialog>
 
 @code{
 
-    string url = "https://localhost:5001/fingerprinthub";
+    [Parameter]
+    public int ProjectId { get; set; }
+
+    bool _dialogIsOpen;
+
+    public Enrol()
+    {
+        //_url = Path.Combine(NavigationManager.BaseUri, "fingerprinthub");//.Replace("\\", "/");
+        _url = "https://localhost:5001/fingerprinthub";
+    }
+
+    public void EnrolPerson()
+    {
+        _dialogIsOpen = true;
+    }
+
+    public EnrolPersonDTO EnrolPersonDTO { get; set; } = new();
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
 
     HubConnection _connection = null;
-    bool isConnected = false;
-    string connectionStatus = "Closed";
-    string statusMessage = "Nil";
+    string _url;
+
+    string _statusMessage = "Sensor State Unknown!";
 
     private async Task ConnectToServer()
     {
         _connection = new HubConnectionBuilder()
-            .WithUrl(url)
+            .WithUrl(_url)
             .Build();
-
-        await _connection.StartAsync();
-        isConnected = true;
-        connectionStatus = "Connected 😜";
 
         _connection.Closed += async (s) =>
         {
-            isConnected = false;
-            connectionStatus = "Disconnected";
             await _connection.StartAsync();
-            isConnected = true;
         };
 
         _connection.On<int, string>("state", (code, message) =>
         {
-            statusMessage = message;
+            _statusMessage = message;
             StateHasChanged();
         });
+
+        await _connection.StartAsync();
     }
+
+    bool IsHubConnected() => _connection.State == HubConnectionState.Connected;
 
     protected override async Task OnInitializedAsync()
     {
         await ConnectToServer();
         //await _connection.InvokeAsync("enrol");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _connection.DisposeAsync();
     }
 }

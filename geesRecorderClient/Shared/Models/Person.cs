@@ -13,7 +13,7 @@ namespace geesRecorderClient.Shared.Models
         // TODO: 
         public List<int> FingerprintIds { get; set; }
 
-        public int FirstName { get; set; }
+        public string FirstName { get; set; }
 
         public string LastName { get; set; }
 

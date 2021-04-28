@@ -22,17 +22,18 @@ else if (LoggedIn == false)
 }
 
 @code{
+    
     protected RenderFragment SignUp => __builder =>
         {
         <h5>Create a new account!</h5>
         <EditForm Model="@SignUpDTO" OnValidSubmit="SignUpSubmit">
             <DataAnnotationsValidator />
             <ValidationSummary />
-            <MatTextField class="form-control" Type="Email" HideClearButton="false" Label="Email" @bind-Value="SignUpDTO.Email" />
-            <MatTextField class="form-control" Type="Password" Label="Password" @bind-Value="SignUpDTO.Password" />
-            <MatTextField class="form-control" Type="Password" Label="Confirm Password" @bind-Value="SignUpDTO.ConfirmPassword" />
-            <MatTextField class="form-control" Type="Password" Label="4-digit Pin" @bind-Value="SignUpDTO.Pin" />
-            <MatButton class="btn btn-primary">Submit</MatButton>
+            <MatTextField Class="form-control" Type="Email" HideClearButton="false" Label="Email" @bind-Value="SignUpDTO.Email" />
+            <MatTextField Class="form-control" Type="Password" Label="Password" @bind-Value="SignUpDTO.Password" />
+            <MatTextField Class="form-control" Type="Password" Label="Confirm Password" @bind-Value="SignUpDTO.ConfirmPassword" />
+            <MatTextField Class="form-control" Type="Password" Label="4-digit Pin" @bind-Value="SignUpDTO.Pin" />
+            <MatButton Type="submit" class="btn btn-primary">Submit</MatButton>
         </EditForm>
         <a @onclick="Toggle" href=""><u>Already have an account? Sign In</u></a>
         };
@@ -45,8 +46,64 @@ else if (LoggedIn == false)
             <ValidationSummary />
             <MatTextField class="form-control" HideClearButton="false" Label="Email" @bind-Value="@SignInDTO.Email" />
             <MatTextField class="form-control" Type="Password" Label="Password" @bind-Value="@SignInDTO.Password" />
-            <MatButton class="btn btn-primary">Submit</MatButton>
+            <MatButton type="submit" class="btn btn-primary">Submit</MatButton>
         </EditForm>
         <a @onclick="Toggle" href=""><u>Don't have an account? Sign Up</u></a>
     };
+
+    [Inject]
+    public Authentication Authentication { get; set; }
+
+    [Inject]
+    protected NavigationManager NavigationManager { get; set; }
+
+    [Inject]
+    protected IMatToaster Toaster { get; set; }
+
+    public SignUpDTO SignUpDTO { get; set; } = new SignUpDTO();
+
+    public SignInDTO SignInDTO { get; set; } = new SignInDTO();
+
+    public bool? LoggedIn { get; set; } = null;
+
+    public bool SignUpToggle { get; set; } = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        LoggedIn = await Authentication.IsLoggedInAsync();
+
+        if (LoggedIn == true)
+        {            
+            NavigationManager.NavigateTo(nameof(Dashboard));
+        }
+    }
+
+    public async Task SignUpSubmit()
+    {
+        var result = await Authentication.SignUpAsync(SignUpDTO);
+        if (result.Succeeded)
+        {
+            NavigationManager.NavigateTo(nameof(Dashboard));
+        }
+        else
+        {
+            Toaster.Add("Error!", MatToastType.Danger);
+        }
+
+    }
+
+    public async Task SignInSubmit()
+    {
+        var result = await Authentication.SignInAsync(SignInDTO);
+        if (result.Succeeded)
+        {
+            NavigationManager.NavigateTo(nameof(Dashboard));
+        }
+        else
+        {
+            Toaster.Add("Error!", MatToastType.Danger);
+        }
+    }
+
+    public void Toggle() => SignUpToggle = !SignUpToggle;
 }

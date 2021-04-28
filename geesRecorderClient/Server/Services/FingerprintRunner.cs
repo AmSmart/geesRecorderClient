@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Hosting;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -9,15 +10,33 @@ using System.Threading.Tasks;
 namespace geesRecorderClient.Server.Services
 {
     public class FingerprintRunner
-    {
-        public FingerprintRunner()
-        {
+    {        
+        private readonly string _fingerprintEnrolScriptPath;
+        private readonly string _fingerprintDeleteScriptPath;
+        private readonly string _fingerprintSearchScriptPath;
+        private const string ScriptsFolderPath = "Scripts";
 
+        public FingerprintRunner(IHostEnvironment hostEnvironment)
+        {
+            string projectRootPath = hostEnvironment.ContentRootPath;
+            _fingerprintEnrolScriptPath = Path.Combine(projectRootPath, ScriptsFolderPath, "fingerprint_enrol.py");
+            _fingerprintDeleteScriptPath = Path.Combine(projectRootPath, ScriptsFolderPath, "fingerprint_delete.py");
+            _fingerprintSearchScriptPath = Path.Combine(projectRootPath, ScriptsFolderPath, "fingerprint_search.py");
         }
 
         public void Enrol()
+        {            
+            Run(_fingerprintEnrolScriptPath, "");
+        }
+
+        public void Delete()
         {
-            Run(@"C:\Users\Engineer Smart\source\repos\geesRecorderClient\geesRecorderClient\Server\Scripts\fingerprint_enrol.py", "");
+            Run(_fingerprintDeleteScriptPath, "");
+        }
+        
+        public void Search()
+        {
+            Run(_fingerprintSearchScriptPath, "");
         }
 
         private string Run(string cmd, string args)

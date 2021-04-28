@@ -8,18 +8,12 @@ using System.Threading.Tasks;
 
 namespace geesRecorderClient.Shared.DTOs
 {
-    public record EnrolPersonDTO
+    public record CreateProjectDTO
     {
         [Required]
-        public string FirstName { get; set; }
+        public string Name { get; set; }
 
         [Required]
-        public string LastName { get; set; }
-
-        public string CustomId { get; set; }        
-
-        public int ProjectId { get; set; }
-
-        public int FingerPrintId { get; set; }
+        public int Type { get; set; }
     }
 }

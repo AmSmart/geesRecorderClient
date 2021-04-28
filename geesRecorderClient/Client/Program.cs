@@ -20,7 +20,10 @@ namespace geesRecorderClient.Client
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("#app");
 
-            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(/*"https://localhost:5001/"*/builder.HostEnvironment.BaseAddress) });            
+            builder.Services.AddScoped(sp => new HttpClient
+            {
+                BaseAddress = new Uri("https://localhost:5001/"/*builder.HostEnvironment.BaseAddress*/)
+            });
             builder.Services.AddScoped<Authentication>();
             builder.Services.AddScoped<ApiClient>();
 

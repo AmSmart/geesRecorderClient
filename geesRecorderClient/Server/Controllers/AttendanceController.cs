@@ -19,17 +19,9 @@ namespace geesRecorderClient.Server.Controllers
         public AttendanceController(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
-        }
-
-        [HttpPost("create")]
-        public async Task<IActionResult> CreateNewAttendance(Project project)
-        {
-            _dbContext.Projects.Add(project);
-            await _dbContext.SaveChangesAsync();
-            return Ok();
-        }
+        }        
         
-        [HttpPost("add-event")]
+        [HttpPost("event")]
         public async Task<IActionResult> AddNewEvent(AddNewEventDTO dto)
         {            
             _dbContext.Events.Add(new Event
@@ -72,7 +64,7 @@ namespace geesRecorderClient.Server.Controllers
             return Ok();
         }
 
-        [HttpPost("enrol-new")]
+        [HttpPost("enrol")]
         public async Task<IActionResult> EnrolAttendant(EnrolPersonDTO dto)
         {
             _dbContext.Persons.Add(new Person
@@ -81,10 +73,10 @@ namespace geesRecorderClient.Server.Controllers
                 {
                     new AttendanceProject{ Id = dto.ProjectId }
                 },
-                CustomId = dto.Person.CustomId,
-                FingerprintIds = dto.Person.FingerprintIds,
-                FirstName = dto.Person.FirstName,
-                LastName = dto.Person.LastName
+                CustomId = dto.CustomId,
+                FingerprintIds = new List<int> { dto.FingerPrintId },
+                FirstName = dto.FirstName,
+                LastName = dto.LastName
             });
             await _dbContext.SaveChangesAsync();
             return Ok();

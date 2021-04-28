@@ -43,7 +43,7 @@ namespace geesRecorderClient.Server.Controllers
                 {
                     AccessToken = "",
                     LoggedIn = false,
-                    Pin = "",
+                    Pin = "1234", // TODO: Remove default pin later
                     LockedRoute = "",
                     RouteLockActivated = false
                 });
@@ -111,6 +111,30 @@ namespace geesRecorderClient.Server.Controllers
             };
 
             return Ok(dashboardDTO);
+        }
+
+        [HttpPost("create-project")]
+        public async Task<IActionResult> CreateProject(Project project)
+        {
+            _dbContext.Projects.Add(project);
+            await _dbContext.SaveChangesAsync();
+            return Ok();
+        }
+
+        [HttpGet("get-project")]
+        public async Task<IActionResult> GetProject(int id)
+        {
+            var project = await _dbContext.Projects.FindAsync(id);
+            
+            if(project.Type == ProjectType.Attendance)
+            {
+                project = await _dbContext.AttendanceProjects.FindAsync(id);
+            }
+            else if(project.Type == ProjectType.DataCollection)
+            {
+                project = await _dbContext.DataCollectionProjects.FindAsync(id);
+            }
+            return Ok(project);
         }
 
         [HttpPost("lock-route")]

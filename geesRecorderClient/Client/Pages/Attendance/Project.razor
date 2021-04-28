@@ -1,2 +1,64 @@
-﻿@page "/attendance/project"
+﻿@page "/attendance/project/{Id:int}"
+@using Models = geesRecorderClient.Shared.Models;
 
+@if (ProjectData is null)
+{
+    <Loading />
+}
+else
+{
+    if (ProjectData.Type == ProjectType.Attendance)
+    {
+        <MatButton OnClick="Enrol">Enrol</MatButton>
+
+        <MatButton>Add Extra Fingerprint</MatButton>
+
+        <MatButton>Mark Attendance</MatButton>
+
+        <MatButton>New Event</MatButton>
+
+        <MatDialog>
+            <MatDialogTitle>Add New Event</MatDialogTitle>
+            <MatDialogContent>
+
+            </MatDialogContent>
+            <MatDialogActions>
+                <MatButton>No Thanks</MatButton>
+                <MatButton Type="submit">OK</MatButton>
+            </MatDialogActions>
+        </MatDialog>
+    }
+    else if (ProjectData.Type == ProjectType.DataCollection)
+    {
+
+    }
+}
+
+@code{
+    [Parameter]
+    public int Id { get; set; }
+
+    public Models.Project ProjectData { get; set; } = null;
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    [Inject]
+    public ApiClient ApiClient { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetProject(Id);
+        if (result.Succeeded)
+        {
+            ProjectData = result.Data;
+        }
+        throw new Exception();
+    }
+
+    public void Enrol()
+    {
+        Console.WriteLine("Enrol");
+        NavigationManager.NavigateTo($"/attendance/enrol/{Id}");
+    }
+}
