@@ -44,9 +44,9 @@ else if (LoggedIn == false)
         <EditForm Model="@SignInDTO" OnValidSubmit="SignInSubmit">
             <DataAnnotationsValidator />
             <ValidationSummary />
-            <MatTextField class="form-control" HideClearButton="false" Label="Email" @bind-Value="@SignInDTO.Email" />
-            <MatTextField class="form-control" Type="Password" Label="Password" @bind-Value="@SignInDTO.Password" />
-            <MatButton type="submit" class="btn btn-primary">Submit</MatButton>
+            <MatTextField Class="form-control" HideClearButton="false" Label="Email" @bind-Value="@SignInDTO.Email" />
+            <MatTextField Class="form-control" Type="Password" Label="Password" @bind-Value="@SignInDTO.Password" />
+            <MatButton Type="submit" class="btn btn-primary">Submit</MatButton>
         </EditForm>
         <a @onclick="Toggle" href=""><u>Don't have an account? Sign Up</u></a>
     };
@@ -60,9 +60,9 @@ else if (LoggedIn == false)
     [Inject]
     protected IMatToaster Toaster { get; set; }
 
-    public SignUpDTO SignUpDTO { get; set; } = new SignUpDTO();
+    public SignUpDTO SignUpDTO { get; set; } = new();
 
-    public SignInDTO SignInDTO { get; set; } = new SignInDTO();
+    public SignInDTO SignInDTO { get; set; } = new();
 
     public bool? LoggedIn { get; set; } = null;
 

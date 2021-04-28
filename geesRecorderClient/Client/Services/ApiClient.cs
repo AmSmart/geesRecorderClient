@@ -95,7 +95,7 @@ namespace geesRecorderClient.Client.Services
 
         public async Task<OperationDataResult<Project>> GetProject(int id)
         {
-            var result = await _httpClient.GetAsync($"auth/get-projetct?id={id}");
+            var result = await _httpClient.GetAsync($"auth/get-project?id={id}");
             string resultContent = await result.Content.ReadAsStringAsync();
 
             if (result.IsSuccessStatusCode)

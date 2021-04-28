@@ -5,11 +5,12 @@
 @using System.IO
 
 <EditForm Model="EnrolPersonDTO" OnValidSubmit="EnrolPerson">
+    <DataAnnotationsValidator />
     <p>Enter the person's details</p>
     <MatTextField @bind-Value="EnrolPersonDTO.FirstName" Label="First Name" />
     <MatTextField @bind-Value="EnrolPersonDTO.LastName" Label="Last Name" />
     <MatTextField @bind-Value="EnrolPersonDTO.CustomId" Label="Custom ID" />
-    <MatButton Type="submit">Enrol</MatButton>
+    <MatButton type="submit">Enrol</MatButton>
 </EditForm>
 
 <MatDialog @bind-IsOpen="@_dialogIsOpen">
@@ -43,9 +44,10 @@
     public void EnrolPerson()
     {
         _dialogIsOpen = true;
+        Console.WriteLine(EnrolPersonDTO.FirstName);
     }
 
-    public EnrolPersonDTO EnrolPersonDTO { get; set; } = new();
+    public EnrolPersonDTO EnrolPersonDTO { get; set; } = new EnrolPersonDTO();
 
     [Inject]
     public NavigationManager NavigationManager { get; set; }

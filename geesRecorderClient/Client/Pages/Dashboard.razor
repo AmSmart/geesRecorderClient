@@ -42,6 +42,7 @@
     <MatDialogTitle>Create Project</MatDialogTitle>
     <MatDialogContent>
         <EditForm Model="CreateProjectDTO" OnValidSubmit="CreateProject">
+            <DataAnnotationsValidator />
             <p>Enter the project details</p>
             <MatTextField @bind-Value="CreateProjectDTO.Name" Label="Project Name"></MatTextField>
             <MatSelect @bind-Value="@(CreateProjectDTO.Type)" Label="Project Type">

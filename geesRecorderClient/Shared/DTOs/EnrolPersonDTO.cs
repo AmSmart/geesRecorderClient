@@ -10,7 +10,7 @@ namespace geesRecorderClient.Shared.DTOs
 {
     public record EnrolPersonDTO
     {
-        [Required]
+        [Required]        
         public string FirstName { get; set; }
 
         [Required]
