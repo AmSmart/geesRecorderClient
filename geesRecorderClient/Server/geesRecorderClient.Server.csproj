@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!--<ProjectReference Include="..\Client\geesRecorderClient.Client.csproj" />-->
+    <ProjectReference Include="..\Client\geesRecorderClient.Client.csproj" />
     <ProjectReference Include="..\Shared\geesRecorderClient.Shared.csproj" />
   </ItemGroup>
 
