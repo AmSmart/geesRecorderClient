@@ -21,23 +21,19 @@ else
         <MatDialog @bind-IsOpen="_dialogIsOpen">
             <MatDialogTitle>Add New Event</MatDialogTitle>
             <MatDialogContent>
-<EditForm Model="AddNewEventDTO" OnValidSubmit="AddEvent">
-   <p>Enter the Event details</p>
-    <MatTextField @bind-Value="AddNewEventDTO.EventName" Label="Project Name"></MatTextField>
-    <p>
-            <MatDatePicker @bind-Value="AddNewEventDTO.Start"></MatDatePicker>
-        </p>
-        <p>
-            <MatDatePicker @bind-Value="AddNewEventDTO.End"></MatDatePicker>
-        </p>
-    <MatButton type="submit">Add Event</MatButton>
-</EditForm>
+                <EditForm Model="AddNewEventDTO" OnValidSubmit="AddEvent">
+                    <p>Enter the Event details</p>
 
+                    <MatTextField @bind-Value="AddNewEventDTO.EventName" Label="Event Name" />
+                    <p>
+                        <MatDatePicker @bind-Value="AddNewEventDTO.Start" EnableTime="true" Label="Start Time"></MatDatePicker>
+                    </p>
+                    <p>
+                        <MatDatePicker @bind-Value="AddNewEventDTO.End" EnableTime="true" Label="End Time"></MatDatePicker>
+                    </p>
+                    <MatButton type="submit">Add Event</MatButton>
+                </EditForm>
             </MatDialogContent>
-            <MatDialogActions>
-                <MatButton OnClick="@(e => { _dialogIsOpen = false; })">No Thanks</MatButton>
-                <MatButton Type="submit" OnClick="AddEvent">OK</MatButton>
-            </MatDialogActions>
         </MatDialog>
     }
     else if (ProjectData.Type == ProjectType.DataCollection)
@@ -63,12 +59,21 @@ else
     [Inject]
     public ApiClient ApiClient { get; set; }
 
+    [Inject]
+    protected IMatToaster Toaster { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         var result = await ApiClient.GetProject(Id);
         if (result.Succeeded)
         {
             ProjectData = result.Data;
+            AddNewEventDTO = new()
+            {
+                EventName = $"{ProjectData.Name} - {DateTime.Now:MM-dd-yyyy}",
+                Start = DateTime.UtcNow,
+                End = DateTime.Now
+            };
         }
         else
         {
@@ -82,8 +87,16 @@ else
         NavigationManager.NavigateTo($"/attendance/enrol/{Id}");
     }
 
-    public void AddEvent()
+    public async Task AddEvent()
     {
-
+        var result = await ApiClient.AddNewEvent(AddNewEventDTO);
+        if (result.Succeeded)
+        {
+            Toaster.Add("Event Added Successfully", MatToastType.Success);
+        }
+        else
+        {
+            Toaster.Add("Failed to add event", MatToastType.Danger);
+        }
     }
 }

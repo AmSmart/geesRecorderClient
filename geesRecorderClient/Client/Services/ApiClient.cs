@@ -50,7 +50,7 @@ namespace geesRecorderClient.Client.Services
             return new OperationResult(await result.Content.ReadAsStringAsync());
         }
         
-        public async Task<OperationResult> AddNewEvent(EnrolPersonDTO dto)
+        public async Task<OperationResult> AddNewEvent(AddNewEventDTO dto)
         {
             var result = await _httpClient.PostAsJsonAsync("attendance/event", dto);
 
