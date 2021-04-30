@@ -15,16 +15,28 @@ else
 
         <MatButton>Mark Attendance</MatButton>
 
-        <MatButton>New Event</MatButton>
+        <MatButton OnClick="(e => _dialogIsOpen = true)">New Event</MatButton>
 
-        <MatDialog>
+
+        <MatDialog @bind-IsOpen="_dialogIsOpen">
             <MatDialogTitle>Add New Event</MatDialogTitle>
             <MatDialogContent>
+<EditForm Model="AddNewEventDTO" OnValidSubmit="AddEvent">
+   <p>Enter the Event details</p>
+    <MatTextField @bind-Value="AddNewEventDTO.EventName" Label="Project Name"></MatTextField>
+    <p>
+            <MatDatePicker @bind-Value="AddNewEventDTO.Start"></MatDatePicker>
+        </p>
+        <p>
+            <MatDatePicker @bind-Value="AddNewEventDTO.End"></MatDatePicker>
+        </p>
+    <MatButton type="submit">Add Event</MatButton>
+</EditForm>
 
             </MatDialogContent>
             <MatDialogActions>
-                <MatButton>No Thanks</MatButton>
-                <MatButton Type="submit">OK</MatButton>
+                <MatButton OnClick="@(e => { _dialogIsOpen = false; })">No Thanks</MatButton>
+                <MatButton Type="submit" OnClick="AddEvent">OK</MatButton>
             </MatDialogActions>
         </MatDialog>
     }
@@ -35,10 +47,15 @@ else
 }
 
 @code{
+
+    bool _dialogIsOpen = false;
+
     [Parameter]
     public int Id { get; set; }
 
     public Models.Project ProjectData { get; set; } = null;
+
+    public AddNewEventDTO AddNewEventDTO { get; set; }
 
     [Inject]
     public NavigationManager NavigationManager { get; set; }
@@ -63,5 +80,10 @@ else
     {
         Console.WriteLine("Enrol");
         NavigationManager.NavigateTo($"/attendance/enrol/{Id}");
+    }
+
+    public void AddEvent()
+    {
+
     }
 }
