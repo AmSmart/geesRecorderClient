@@ -12,9 +12,10 @@ else
         <MatButton OnClick="Enrol">Enrol</MatButton>
 
         <MatButton>Add Extra Fingerprint</MatButton>
+        
 
-        <MatButton>Mark Attendance</MatButton>
-
+        <MatButton OnClick="MarkAttendance">Mark Attendance</MatButton>
+        
         <MatButton OnClick="(e => _dialogIsOpen = true)">New Event</MatButton>
 
 
@@ -53,6 +54,8 @@ else
 
     public AddNewEventDTO AddNewEventDTO { get; set; }
 
+    //public MarkAttendanceDTO MarkAttendanceDTO { get; set; } 
+
     [Inject]
     public NavigationManager NavigationManager { get; set; }
 
@@ -86,6 +89,14 @@ else
         Console.WriteLine("Enrol");
         NavigationManager.NavigateTo($"/attendance/enrol/{Id}");
     }
+
+    public void MarkAttendance()
+    {
+        Console.WriteLine("MarkAttendance");
+        NavigationManager.NavigateTo($"/attendance/mark/{Id}");
+    }
+
+
 
     public async Task AddEvent()
     {
