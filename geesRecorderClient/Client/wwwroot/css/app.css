@@ -42,9 +42,25 @@ a, .btn-link {
     z-index: 1000;
 }
 
-    #blazor-error-ui .dismiss {
+#blazor-error-ui .dismiss {
         cursor: pointer;
         position: absolute;
         right: 0.75rem;
         top: 0.5rem;
-    }
+}
+
+.clickable{
+    cursor: pointer;
+}
+
+.border-rounded{
+    border: 1px solid black;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.appbar-border {
+    border: 3px solid #0366d6;
+    padding: 10px;
+    border-radius: 5px;
+}

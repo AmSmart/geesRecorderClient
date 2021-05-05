@@ -7,38 +7,33 @@
 }
 else
 {
-    if (ProjectData.Type == ProjectType.Attendance)
-    {
-        <MatButton OnClick="Enrol">Enrol</MatButton>
 
-        <MatButton>Add Extra Fingerprint</MatButton>
+    <MatButton OnClick="Enrol">Enrol</MatButton>
 
-        <MatButton>Mark Attendance</MatButton>
+    <MatButton>Add Extra Fingerprint</MatButton>
 
-        <MatButton>New Event</MatButton>
+    <MatButton>Mark Attendance</MatButton>
 
-        <MatDialog>
-            <MatDialogTitle>Add New Event</MatDialogTitle>
-            <MatDialogContent>
+    <MatButton>New Event</MatButton>
 
-            </MatDialogContent>
-            <MatDialogActions>
-                <MatButton>No Thanks</MatButton>
-                <MatButton Type="submit">OK</MatButton>
-            </MatDialogActions>
-        </MatDialog>
-    }
-    else if (ProjectData.Type == ProjectType.DataCollection)
-    {
+    <MatDialog>
+        <MatDialogTitle>Add New Event</MatDialogTitle>
+        <MatDialogContent>
 
-    }
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton>No Thanks</MatButton>
+            <MatButton Type="submit">OK</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+
 }
 
 @code{
     [Parameter]
     public int Id { get; set; }
 
-    public Models.Project ProjectData { get; set; } = null;
+    public Models.AttendanceProject ProjectData { get; set; } = null;
 
     [Inject]
     public NavigationManager NavigationManager { get; set; }
@@ -49,9 +44,9 @@ else
     protected override async Task OnInitializedAsync()
     {
         var result = await ApiClient.GetProject(Id);
-        if (result.Succeeded)
+        if (result.Succeeded && result.Data is AttendanceProject)
         {
-            ProjectData = result.Data;
+            ProjectData = result.Data as AttendanceProject;
         }
         else
         {
@@ -61,7 +56,6 @@ else
 
     public void Enrol()
     {
-        Console.WriteLine("Enrol");
-        NavigationManager.NavigateTo($"/attendance/enrol/{Id}");
+        NavigationManager.NavigateTo($"{ClientRoutes.EnrolAttendance}/{Id}");
     }
 }

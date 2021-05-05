@@ -74,7 +74,7 @@ else if (LoggedIn == false)
 
         if (LoggedIn == true)
         {            
-            NavigationManager.NavigateTo(nameof(Dashboard));
+            NavigationManager.NavigateTo(ClientRoutes.Dashboard);
         }
     }
 
@@ -83,7 +83,7 @@ else if (LoggedIn == false)
         var result = await Authentication.SignUpAsync(SignUpDTO);
         if (result.Succeeded)
         {
-            NavigationManager.NavigateTo(nameof(Dashboard));
+            NavigationManager.NavigateTo(ClientRoutes.Dashboard);
         }
         else
         {
@@ -97,7 +97,7 @@ else if (LoggedIn == false)
         var result = await Authentication.SignInAsync(SignInDTO);
         if (result.Succeeded)
         {
-            NavigationManager.NavigateTo(nameof(Dashboard));
+            NavigationManager.NavigateTo(ClientRoutes.Dashboard);
         }
         else
         {

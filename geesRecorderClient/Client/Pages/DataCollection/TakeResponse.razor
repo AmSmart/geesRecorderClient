@@ -1,0 +1,95 @@
+﻿@page "/datacol/response/{Id:int}"
+
+@if (ProjectData is null)
+{
+    <Loading />
+}
+else
+{
+    for (int i = 0; i < ProjectData.Questions.Count; i++)
+    {
+        int iter = i;
+        if (ProjectData.Questions[iter].Type == QuestionType.Text)
+        {
+            <TextQuestion QuestionText="@ProjectData.Questions[iter].QuestionText" QuestionIndex="@(iter+1)" @bind-AnswerText="Answers[iter]" />
+        }
+        else if (ProjectData.Questions[iter].Type == QuestionType.SingleChoice)
+        {
+            <SelectQuestion QuestionText="@ProjectData.Questions[iter].QuestionText" QuestionIndex="@(iter+1)" 
+                            Options="ProjectData.Questions[iter].Options" @bind-AnswerText="Answers[iter]" />
+        }
+        else if (ProjectData.Questions[iter].Type == QuestionType.MultiChoice)
+        {
+            <MultiSelectQuestion QuestionText="@ProjectData.Questions[iter].QuestionText" QuestionIndex="@(iter+1)" 
+                                 Options="ProjectData.Questions[iter].Options" @bind-AnswerText="Answers[iter]" />
+        }
+    }
+    <div class="text-center">
+        <MatButton OnClick="SubmitResponse" Outlined="true">Submit</MatButton>
+    </div>
+}
+
+<MatDialog @bind-IsOpen="@_responseSubmittedDialogIsOpen">
+    <MatDialogTitle>Create Project</MatDialogTitle>
+    <MatDialogContent>
+        <p>Hurray! Your response has been successfully submitted. Another responses can now be submitted</p>
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@(_ => { _responseSubmittedDialogIsOpen = false; })">No Thanks</MatButton>
+        <MatButton Type="submit">OK</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+@code{
+
+    bool _responseSubmittedDialogIsOpen;
+
+    [Parameter]
+    public int Id { get; set; }
+
+    public DataCollectionProject ProjectData { get; set; } = null;
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    [Inject]
+    public ApiClient ApiClient { get; set; }
+
+    [Inject]
+    public IMatToaster Toaster { get; set; }
+
+    public List<string> Answers { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await InitialisePage();
+        Answers = Enumerable.Repeat("", ProjectData.Questions.Count).ToList();
+    }
+
+    async Task InitialisePage()
+    {
+        var result = await ApiClient.GetProject(Id);
+        if (result.Succeeded && result.Data is DataCollectionProject)
+        {
+            ProjectData = result.Data as DataCollectionProject;
+        }
+        else
+        {
+            throw new Exception();
+        }
+    }
+
+    public async Task SubmitResponse()
+    {
+        var result = await ApiClient.UploadDataCollectionResponse(Id, Answers);
+        if (result.Succeeded)
+        {
+            Answers = Enumerable.Repeat("", ProjectData.Questions.Count).ToList();
+            _responseSubmittedDialogIsOpen = true;
+        }
+        else
+        {
+            Toaster.Add(result.Error, MatToastType.Danger);
+        }
+    }
+}

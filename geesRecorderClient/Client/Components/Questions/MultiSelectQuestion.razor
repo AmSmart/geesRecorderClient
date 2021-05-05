@@ -1,0 +1,54 @@
+﻿<p><span class="font-weight-bold">@($"{QuestionIndex}.")</span> @QuestionText</p>
+@for (int i = 0; i < Options.Count; i++)
+{
+    int iter = i;
+
+    <div>
+        <MatCheckbox TValue="bool" Value="AnswerBools[iter]" ValueChanged="x => OnCheckChanged(x, iter)" Label="@Options[iter]" />
+    </div>
+}
+
+@code{
+
+    [Parameter]
+    public int QuestionIndex { get; set; }
+
+    [Parameter]
+    public string QuestionText { get; set; }
+
+    [Parameter]
+    public string AnswerText { get; set; }
+
+    [Parameter]
+    public List<string> Options { get; set; } = new();
+
+    public List<bool> AnswerBools { get; set; }
+    public List<string> Answers { get; set; }
+
+    [Parameter]
+    public EventCallback<string> AnswerTextChanged { get; set; }
+
+    private async Task OnCheckChanged(bool value, int index)
+    {
+        AnswerBools[index] = value;
+        if (value)
+        {
+            Answers.Add(Options[index]);
+        }
+        else
+        {
+            Answers.Remove(Options[index]);
+        }
+
+        AnswerText = string.Join(",", Answers);
+        await AnswerTextChanged.InvokeAsync(AnswerText);
+    }
+
+    protected override void OnInitialized()
+    {
+        AnswerBools = Enumerable.Repeat(false, Options.Count).ToList();
+        Answers = new List<string>(Options.Count);
+        base.OnInitialized();
+    }
+
+}

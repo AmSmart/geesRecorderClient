@@ -125,6 +125,50 @@ namespace geesRecorderClient.Server.Migrations
                     b.HasDiscriminator<int>("Type").HasValue(0);
                 });
 
+            modelBuilder.Entity("geesRecorderClient.Shared.Models.Question", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("DataCollectionProjectId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Options")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("QuestionText")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DataCollectionProjectId");
+
+                    b.ToTable("Questions");
+                });
+
+            modelBuilder.Entity("geesRecorderClient.Shared.Models.Response", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Answers")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("DataCollectionProjectId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DataCollectionProjectId");
+
+                    b.ToTable("Responses");
+                });
+
             modelBuilder.Entity("geesRecorderClient.Shared.Models.ServerState", b =>
                 {
                     b.Property<int>("Id")
@@ -161,6 +205,9 @@ namespace geesRecorderClient.Server.Migrations
             modelBuilder.Entity("geesRecorderClient.Shared.Models.DataCollectionProject", b =>
                 {
                     b.HasBaseType("geesRecorderClient.Shared.Models.Project");
+
+                    b.Property<bool>("Published")
+                        .HasColumnType("INTEGER");
 
                     b.HasDiscriminator().HasValue(2);
                 });
@@ -204,9 +251,34 @@ namespace geesRecorderClient.Server.Migrations
                     b.Navigation("Person");
                 });
 
+            modelBuilder.Entity("geesRecorderClient.Shared.Models.Question", b =>
+                {
+                    b.HasOne("geesRecorderClient.Shared.Models.DataCollectionProject", "DataCollectionProject")
+                        .WithMany("Questions")
+                        .HasForeignKey("DataCollectionProjectId");
+
+                    b.Navigation("DataCollectionProject");
+                });
+
+            modelBuilder.Entity("geesRecorderClient.Shared.Models.Response", b =>
+                {
+                    b.HasOne("geesRecorderClient.Shared.Models.DataCollectionProject", "DataCollectionProject")
+                        .WithMany("Responses")
+                        .HasForeignKey("DataCollectionProjectId");
+
+                    b.Navigation("DataCollectionProject");
+                });
+
             modelBuilder.Entity("geesRecorderClient.Shared.Models.AttendanceProject", b =>
                 {
                     b.Navigation("Events");
+                });
+
+            modelBuilder.Entity("geesRecorderClient.Shared.Models.DataCollectionProject", b =>
+                {
+                    b.Navigation("Questions");
+
+                    b.Navigation("Responses");
                 });
 #pragma warning restore 612, 618
         }

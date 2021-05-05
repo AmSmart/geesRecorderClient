@@ -1,0 +1,87 @@
+﻿@if (Question.Type == QuestionType.Text)
+{
+    <MatTextField FullWidth="true" TValue="string" Value="@Question.QuestionText" ValueChanged="OnQuestionTextChanged"
+                  Label="Question Text" />
+
+}
+else if (Question.Type == QuestionType.SingleChoice)
+{
+    <p>
+        <MatTextField FullWidth="true" TValue="string" Value="@Question.QuestionText" ValueChanged="OnQuestionTextChanged"
+                      Label="Question Text" />
+    </p>
+    for (int i = 0; i < Question.Options.Count; i++)
+    {
+        int iter = i;
+
+        <div>
+            <span class="float-right">
+                <MatIcon Class="clickable" @onclick="() => AddNewOption(iter + 1)">@MatIconNames.Add_circle</MatIcon>
+                <MatIcon Class="clickable" @onclick="() => DeleteOption(iter)">@MatIconNames.Delete</MatIcon>
+            </span>
+            <MatTextField Icon="@MatIconNames.Radio_button_unchecked" FullWidth="true" TValue="string"
+                          Value="Question.Options[iter]" ValueChanged="x => OnQuestionOptionsChanged(x, iter)" Label="Option" />
+        </div>
+    }
+}
+else if (Question.Type == QuestionType.MultiChoice)
+{
+    <p>
+        <MatTextField FullWidth="true" TValue="string" Value="@Question.QuestionText" ValueChanged="OnQuestionTextChanged"
+                      Label="Question Text" />
+    </p>
+    for (int i = 0; i < Question.Options.Count; i++)
+    {
+        int iter = i;
+        <div>
+            <span class="float-right">
+                <MatIcon Class="clickable" @onclick="() => AddNewOption(iter + 1)">@MatIconNames.Add_circle</MatIcon>
+                <MatIcon Class="clickable" @onclick="() => DeleteOption(iter)">@MatIconNames.Delete</MatIcon>
+            </span>
+            <MatTextField Icon="@MatIconNames.Check_box_outline_blank" FullWidth="true" TValue="string"
+                          Value="Question.Options[iter]" ValueChanged="x => OnQuestionOptionsChanged(x, iter)" Label="Option" />
+        </div>
+    }
+}
+
+@code{
+
+    [Parameter]
+    public Question Question { get; set; }
+
+    [Parameter]
+    public EventCallback<Question> QuestionChanged { get; set; }
+
+    [Inject]
+    public IMatToaster Toaster { get; set; }
+
+    public async Task OnQuestionTextChanged(string questionText)
+    {
+        Question.QuestionText = questionText;
+        await QuestionChanged.InvokeAsync(Question);
+    }
+
+    public async Task OnQuestionOptionsChanged(string optionsText, int index)
+    {
+        Question.Options[index] = optionsText;
+        await QuestionChanged.InvokeAsync(Question);
+    }
+
+    public async Task AddNewOption(int index)
+    {
+        Question.Options.Insert(index, "Solo");
+        await QuestionChanged.InvokeAsync(Question);
+    }
+
+    public async Task DeleteOption(int index)
+    {
+        if (Question.Options.Count > 1)
+        {
+            Question.Options.RemoveAt(index);
+            await QuestionChanged.InvokeAsync(Question);
+            return;
+        }
+        Toaster.Add("A question must have at least one option", MatToastType.Danger);
+    }
+
+}

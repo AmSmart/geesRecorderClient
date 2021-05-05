@@ -116,5 +116,70 @@ namespace geesRecorderClient.Client.Services
             }
             return new OperationDataResult<Project>(error: resultContent);
         }
+        
+        public async Task<OperationResult> DeleteProject(int id)
+        {
+            var result = await _httpClient.DeleteAsync($"auth/del-project?id={id}");
+            string resultContent = await result.Content.ReadAsStringAsync();
+
+            if (result.IsSuccessStatusCode)
+            {
+                return new OperationResult(true);
+            }
+            return new OperationResult(error: resultContent);
+        }
+
+        public async Task<OperationResult> UpdateDataCollectionQuestions(int projectId, List<Question> questions)
+        {
+            var result = await _httpClient.PostAsJsonAsync($"datacol/questions?projectId={projectId}", questions);
+            string resultContent = await result.Content.ReadAsStringAsync();
+
+            if (result.IsSuccessStatusCode)
+            {
+                return new OperationResult(true);
+            }
+
+            return new OperationResult(resultContent);
+        }
+        
+        public async Task<OperationResult> UploadDataCollectionResponse(int projectId, List<string> answers)
+        {
+            var result = await _httpClient.PostAsJsonAsync($"datacol/response?projectId={projectId}", answers);
+            string resultContent = await result.Content.ReadAsStringAsync();
+
+            if (result.IsSuccessStatusCode)
+            {
+                return new OperationResult(true);
+            }
+
+            return new OperationResult(resultContent);
+        }
+        
+        public async Task<OperationResult> PublishDataColSurvey(int projectId)
+        {
+            var result = await _httpClient.PostAsJsonAsync($"datacol/publish-survey?projectId={projectId}", "");
+            string resultContent = await result.Content.ReadAsStringAsync();
+
+            if (result.IsSuccessStatusCode)
+            {
+                return new OperationResult(true);
+            }
+
+            return new OperationResult(resultContent);
+        }
+
+        public async Task<OperationDataResult<DataCollectionProject>> CreateDataColProjectWithQuestions(string projectName, List<Question> questions)
+        {
+            var result = await _httpClient.PostAsJsonAsync($"datacol/create-with-questions?projectName={projectName}", questions);
+            string resultContent = await result.Content.ReadAsStringAsync();
+
+            if (result.IsSuccessStatusCode)
+            {
+                var project = JsonSerializer.Deserialize<DataCollectionProject>(resultContent, _jsonOptions);
+                return new OperationDataResult<DataCollectionProject>(project);
+            }
+
+            return new OperationDataResult<DataCollectionProject>(resultContent);
+        }
     }
 }

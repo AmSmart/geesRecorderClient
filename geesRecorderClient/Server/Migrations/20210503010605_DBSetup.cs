@@ -14,7 +14,7 @@ namespace geesRecorderClient.Server.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     FingerprintIds = table.Column<string>(type: "TEXT", nullable: true),
-                    FirstName = table.Column<int>(type: "INTEGER", nullable: false),
+                    FirstName = table.Column<string>(type: "TEXT", nullable: true),
                     LastName = table.Column<string>(type: "TEXT", nullable: true),
                     CustomId = table.Column<string>(type: "TEXT", nullable: true)
                 },
@@ -101,6 +101,48 @@ namespace geesRecorderClient.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Questions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    QuestionText = table.Column<string>(type: "TEXT", nullable: true),
+                    Options = table.Column<string>(type: "TEXT", nullable: true),
+                    Type = table.Column<int>(type: "INTEGER", nullable: false),
+                    DataCollectionProjectId = table.Column<int>(type: "INTEGER", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Questions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Questions_Projects_DataCollectionProjectId",
+                        column: x => x.DataCollectionProjectId,
+                        principalTable: "Projects",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Responses",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Answers = table.Column<string>(type: "TEXT", nullable: true),
+                    DataCollectionProjectId = table.Column<int>(type: "INTEGER", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Responses", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Responses_Projects_DataCollectionProjectId",
+                        column: x => x.DataCollectionProjectId,
+                        principalTable: "Projects",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PersonEvents",
                 columns: table => new
                 {
@@ -147,6 +189,16 @@ namespace geesRecorderClient.Server.Migrations
                 name: "IX_PersonEvents_PersonId",
                 table: "PersonEvents",
                 column: "PersonId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Questions_DataCollectionProjectId",
+                table: "Questions",
+                column: "DataCollectionProjectId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Responses_DataCollectionProjectId",
+                table: "Responses",
+                column: "DataCollectionProjectId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -156,6 +208,12 @@ namespace geesRecorderClient.Server.Migrations
 
             migrationBuilder.DropTable(
                 name: "PersonEvents");
+
+            migrationBuilder.DropTable(
+                name: "Questions");
+
+            migrationBuilder.DropTable(
+                name: "Responses");
 
             migrationBuilder.DropTable(
                 name: "ServerState");

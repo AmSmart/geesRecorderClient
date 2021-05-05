@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace geesRecorderClient.Shared
 {
-    public class AppConstants
+    public class ApiRoutes
     {
         //public const string ApiBaseAddress = "https://localhost:3001/";
         public const string ApiBaseAddress = "https://gees-recorder.herokuapp.com";

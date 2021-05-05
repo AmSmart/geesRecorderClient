@@ -1,0 +1,125 @@
+﻿@page "/datacol/edit/{Id:int}"
+
+@if (ProjectData is null)
+{
+    <Loading />
+}
+else
+{
+    for (int i = 0; i < ProjectData.Questions.Count; i++)
+    {
+        int iter = i;
+        <div class="border-rounded mb-2">
+            <div>
+                <MatSubtitle1 Class="text-center">@($"Question {iter+1}")</MatSubtitle1>
+                <div class="text-right">
+                    <MatSelect TValue="int" Outlined="true" Value="(int) ProjectData.Questions[iter].Type"
+                               ValueChanged="x => OnQuestionTypeChanged(x, iter)">
+                        <MatOption TValue="int" Value="(int) QuestionType.Text">Text</MatOption>
+                        <MatOption TValue="int" Value="(int) QuestionType.SingleChoice">Single Choice</MatOption>
+                        <MatOption TValue="int" Value="(int) QuestionType.MultiChoice">Multiple Choice</MatOption>
+                    </MatSelect>
+                </div>
+            </div>
+            <MatCardContent>
+                <QuestionSetter @bind-Question="ProjectData.Questions[iter]" />
+            </MatCardContent>
+
+            <div>
+                Add Question
+                <MatIcon @onclick="() => AddQuestion(QuestionType.Text, iter+1)" Class="clickable">@MatIconNames.Title</MatIcon>
+                <MatIcon @onclick="() => AddQuestion(QuestionType.SingleChoice, iter+1)" Class="clickable">@MatIconNames.Radio_button_unchecked</MatIcon>
+                <MatIcon @onclick="() => AddQuestion(QuestionType.MultiChoice, iter+1)" Class="clickable">@MatIconNames.Check_box_outline_blank</MatIcon>
+                <MatIcon @onclick="() => DeleteQuestion(iter)" Class="float-right clickable" Style="font-size: 2.5em;">
+                    @MatIconNames.Delete_forever
+                </MatIcon>
+            </div>
+        </div>
+    }
+    <div class="text-center">
+        <br />
+        <MatButton Class="mb-1 text-center" OnClick="SaveChanges" Raised="true">Save Changes</MatButton>
+    </div>
+}
+
+@code{
+    [Parameter]
+    public int Id { get; set; }
+
+    public DataCollectionProject ProjectData { get; set; } = null;
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    [Inject]
+    public ApiClient ApiClient { get; set; }
+
+    [Inject]
+    public IMatToaster Toaster { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetProject(Id);
+        if (result.Succeeded && result.Data is DataCollectionProject)
+        {
+            ProjectData = result.Data as DataCollectionProject;
+            if (ProjectData.Questions.Count == 0)
+            {
+                ProjectData.Questions.Add(new Question
+                {
+                    Type = QuestionType.SingleChoice,
+                    QuestionText = "Sample Question",
+                    Options = new() { "Sample Option" }
+                });
+            }
+        }
+        else
+        {
+            throw new Exception();
+        }
+    }
+
+    public void OnQuestionTypeChanged(int type, int index)
+    {
+        ProjectData.Questions[index].Type = (QuestionType)type;
+    }
+
+    public void AddQuestion(QuestionType type, int index)
+    {
+        ProjectData.Questions.Insert(index, new Question
+        {
+            QuestionText = "",
+            Type = type,
+            Options = new() { "" }
+
+        });
+    }
+
+    public void DeleteQuestion(int index)
+    {
+        if (ProjectData.Questions.Count > 1)
+        {
+            ProjectData.Questions.RemoveAt(index);
+            return;
+        }
+        Toaster.Add("The project must contain at least one question", MatToastType.Danger);
+    }
+
+    public async Task SaveChanges()
+    {
+        if (ProjectData.Published)
+        {
+            Toaster.Add("You cannot edit a published subvey!", MatToastType.Danger);
+            return;
+        }
+        var result = await ApiClient.UpdateDataCollectionQuestions(Id, ProjectData.Questions);
+        if (result.Succeeded)
+        {
+            Toaster.Add("Changes Saved!", MatToastType.Success);
+        }
+        else
+        {
+            Toaster.Add(result.Error, MatToastType.Danger);
+        }
+    }
+}

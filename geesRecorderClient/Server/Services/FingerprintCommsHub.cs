@@ -18,7 +18,6 @@ namespace geesRecorderClient.Server.Services
 
         public override Task OnConnectedAsync()
         {
-            _fingerprintRunner.Enrol();
             return base.OnConnectedAsync();
         }
     }
