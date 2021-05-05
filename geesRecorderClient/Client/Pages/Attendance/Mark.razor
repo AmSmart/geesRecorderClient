@@ -1,0 +1,92 @@
+@page "/attendance/mark/{ProjectId:int}"
+@implements IAsyncDisposable
+@inject HttpClient HttpClient
+@using Microsoft.AspNetCore.SignalR.Client
+@using System.IO
+
+<EditForm Model="MarkAttendanceDTO" OnValidSubmit="MarkAttendance">
+    <DataAnnotationsValidator />
+    <p>Enter the person's details</p>
+    <MatTextField @bind-Value="MarkAttendanceDTO.PersonId" Label="PersonId" />
+    @* <MatSelectItem @bind-Value="MarkAttendanceDTO.EventId" Items="@AddEvent">
+        </MatSelectItem> *@
+    
+    <MatButton type="submit">Mark</MatButton>
+</EditForm>
+
+<MatDialog @bind-IsOpen="@_dialogIsOpen">
+    <MatDialogTitle>Scan your finger</MatDialogTitle>
+    <MatDialogContent>
+        @*<EditForm>
+
+            </EditForm>*@
+        <p>Fingerprint Scanner Status: @_statusMessage</p>
+
+    </MatDialogContent>
+    <MatDialogActions>
+        <MatButton OnClick="@(e => { _dialogIsOpen = false; })">No Thanks</MatButton>
+        <MatButton Type="submit">OK</MatButton>
+    </MatDialogActions>
+</MatDialog>
+
+@code{
+
+    [Parameter]
+    public int ProjectId { get; set; }
+
+    bool _dialogIsOpen;
+
+    public Mark()
+    {
+        //_url = Path.Combine(NavigationManager.BaseUri, "fingerprinthub");//.Replace("\\", "/");
+        _url = "https://localhost:5001/fingerprinthub";
+    }
+
+    public void MarkAttendance()
+    {
+        _dialogIsOpen = true;
+    }
+
+    public MarkAttendanceDTO MarkAttendanceDTO { get; set; } = new MarkAttendanceDTO();
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    HubConnection _connection = null;
+    string _url;
+
+    string _statusMessage = "Sensor State Unknown!";
+
+    private async Task ConnectToServer()
+    {
+        _connection = new HubConnectionBuilder()
+            .WithUrl(_url)
+            .Build();
+
+        _connection.Closed += async (s) =>
+        {
+            await _connection.StartAsync();
+        };
+
+        _connection.On<int, string>("state", (code, message) =>
+        {
+            _statusMessage = message;
+            StateHasChanged();
+        });
+
+        await _connection.StartAsync();
+    }
+
+    bool IsHubConnected() => _connection.State == HubConnectionState.Connected;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ConnectToServer();
+        //await _connection.InvokeAsync("enrol");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _connection.DisposeAsync();
+    }
+}

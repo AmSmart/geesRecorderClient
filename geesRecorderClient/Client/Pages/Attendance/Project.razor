@@ -1,4 +1,4 @@
-﻿@page "/attendance/project/{Id:int}"
+@page "/attendance/project/{Id:int}"
 @using Models = geesRecorderClient.Shared.Models;
 
 @if (ProjectData is null)
@@ -7,33 +7,42 @@
 }
 else
 {
+        <MatButton OnClick="Enrol">Enrol</MatButton>
+        <MatButton>Add Extra Fingerprint</MatButton>
+        <MatButton OnClick="MarkAttendance">Mark Attendance</MatButton>
+        <MatButton OnClick="(e => _dialogIsOpen = true)">New Event</MatButton>
 
-    <MatButton OnClick="Enrol">Enrol</MatButton>
+        <MatDialog @bind-IsOpen="_dialogIsOpen">
+            <MatDialogTitle>Add New Event</MatDialogTitle>
+            <MatDialogContent>
+                <EditForm Model="AddNewEventDTO" OnValidSubmit="AddEvent">
+                    <p>Enter the Event details</p>
 
-    <MatButton>Add Extra Fingerprint</MatButton>
-
-    <MatButton>Mark Attendance</MatButton>
-
-    <MatButton>New Event</MatButton>
-
-    <MatDialog>
-        <MatDialogTitle>Add New Event</MatDialogTitle>
-        <MatDialogContent>
-
-        </MatDialogContent>
-        <MatDialogActions>
-            <MatButton>No Thanks</MatButton>
-            <MatButton Type="submit">OK</MatButton>
-        </MatDialogActions>
-    </MatDialog>
-
+                    <MatTextField @bind-Value="AddNewEventDTO.EventName" Label="Event Name" />
+                    <p>
+                        <MatDatePicker @bind-Value="AddNewEventDTO.Start" EnableTime="true" Label="Start Time"></MatDatePicker>
+                    </p>
+                    <p>
+                        <MatDatePicker @bind-Value="AddNewEventDTO.End" EnableTime="true" Label="End Time"></MatDatePicker>
+                    </p>
+                    <MatButton type="submit">Add Event</MatButton>
+                </EditForm>
+            </MatDialogContent>
+        </MatDialog>
 }
 
 @code{
+
+    bool _dialogIsOpen = false;
+
     [Parameter]
     public int Id { get; set; }
 
     public Models.AttendanceProject ProjectData { get; set; } = null;
+
+    public AddNewEventDTO AddNewEventDTO { get; set; }
+
+    //public MarkAttendanceDTO MarkAttendanceDTO { get; set; } 
 
     [Inject]
     public NavigationManager NavigationManager { get; set; }
@@ -41,12 +50,21 @@ else
     [Inject]
     public ApiClient ApiClient { get; set; }
 
+    [Inject]
+    protected IMatToaster Toaster { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         var result = await ApiClient.GetProject(Id);
         if (result.Succeeded && result.Data is AttendanceProject)
         {
             ProjectData = result.Data as AttendanceProject;
+            AddNewEventDTO = new()
+            {
+                EventName = $"{ProjectData.Name} - {DateTime.Now:MM-dd-yyyy}",
+                Start = DateTime.UtcNow,
+                End = DateTime.Now
+            };
         }
         else
         {
@@ -57,5 +75,25 @@ else
     public void Enrol()
     {
         NavigationManager.NavigateTo($"{ClientRoutes.EnrolAttendance}/{Id}");
+    }
+
+    public void MarkAttendance()
+    {
+        NavigationManager.NavigateTo($"/attendance/mark/{Id}");
+    }
+
+
+
+    public async Task AddEvent()
+    {
+        var result = await ApiClient.AddNewEvent(AddNewEventDTO);
+        if (result.Succeeded)
+        {
+            Toaster.Add("Event Added Successfully", MatToastType.Success);
+        }
+        else
+        {
+            Toaster.Add("Failed to add event", MatToastType.Danger);
+        }
     }
 }
