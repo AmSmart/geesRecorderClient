@@ -35,7 +35,7 @@ namespace geesRecorderClient.Server.Controllers
             _webHostEnvironment = webHostEnvironment;
             _dbContext = dbContext;
             _httpClient = httpClientFactory.CreateClient();
-            _httpClient.BaseAddress = new Uri(AppConstants.ApiBaseAddress);
+            _httpClient.BaseAddress = new Uri(ApiRoutes.ApiBaseAddress);
 
             if (_dbContext.ServerState.FirstOrDefault() is null)
             {
@@ -62,7 +62,7 @@ namespace geesRecorderClient.Server.Controllers
         [HttpPost("signup")]
         public async Task<IActionResult> SignUp([FromBody] SignUpDTO dto)
         {
-            var response = await _httpClient.PostAsJsonAsync(AppConstants.ApiSignUp, dto);
+            var response = await _httpClient.PostAsJsonAsync(ApiRoutes.ApiSignUp, dto);
             if (response.IsSuccessStatusCode)
             {
                 var token = JsonSerializer.Deserialize<JwtTokenDTO>(await response.Content.ReadAsStringAsync(), _jsonOptions);
@@ -76,7 +76,7 @@ namespace geesRecorderClient.Server.Controllers
         [HttpPost("signin")]
         public async Task<IActionResult> SignIn([FromBody] SignInDTO dto)
         {
-            var response = await _httpClient.PostAsJsonAsync(AppConstants.ApiSignIn, dto);
+            var response = await _httpClient.PostAsJsonAsync(ApiRoutes.ApiSignIn, dto);
             if (response.IsSuccessStatusCode)
             {
                 var token = JsonSerializer.Deserialize<JwtTokenDTO>(await response.Content.ReadAsStringAsync(), _jsonOptions);
@@ -89,7 +89,7 @@ namespace geesRecorderClient.Server.Controllers
         [HttpPost("refresh-token")]
         public async Task<IActionResult> Refresh()
         {
-            var response = await _httpClient.PostAsJsonAsync(AppConstants.ApiRefreshToken, new { });
+            var response = await _httpClient.PostAsJsonAsync(ApiRoutes.ApiRefreshToken, new { });
             if (response.IsSuccessStatusCode)
             {
                 var token = JsonSerializer.Deserialize<JwtTokenDTO>(await response.Content.ReadAsStringAsync(), _jsonOptions);
@@ -135,6 +135,15 @@ namespace geesRecorderClient.Server.Controllers
                 project = await _dbContext.DataCollectionProjects.FindAsync(id);
             }
             return Ok(project);
+        }
+
+        [HttpDelete("del-project")]
+        public async Task<IActionResult> DeleteProject(int id)
+        {
+            var project = await _dbContext.Projects.FindAsync(id);
+            _dbContext.Projects.Remove(project);
+            await _dbContext.SaveChangesAsync();
+            return Ok();
         }
 
         [HttpPost("lock-route")]

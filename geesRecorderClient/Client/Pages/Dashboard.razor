@@ -2,9 +2,9 @@
 
 <div class="text-center">
     <h5>@($"{UserName}'s Projects")</h5>
-    <MatIconButton OnClick="(e => _dialogIsOpen = true)">
-        <MatIcon>@MatIconNames.Add_circle</MatIcon>
-    </MatIconButton>
+    <MatFAB OnClick="@(_ => _createProjectDialogIsOpen = true)">
+        <MatIcon Style="font-size: 3em;">@MatIconNames.Add_circle</MatIcon>
+    </MatFAB>
 </div>
 
 <div class="mat-layout-grid">
@@ -29,8 +29,8 @@
                         </div>
                     </MatCardContent>
                     <MatCardActions>
-                        <MatButton OnClick="() => Navigate(project.Id)">Open</MatButton>
-                        <MatButton class="text-danger">Delete</MatButton>
+                        <MatButton OnClick="() => Navigate(project.Id, project.Type)">Open</MatButton>
+                        <MatButton OnClick="() => OpenDeleteModal(project.Id)" class="text-danger">Delete</MatButton>
                     </MatCardActions>
                 </MatCard>
             </div>
@@ -38,31 +38,43 @@
     </div>
 </div>
 
-<MatDialog @bind-IsOpen="@_dialogIsOpen">
-    <MatDialogTitle>Create Project</MatDialogTitle>
-    <MatDialogContent>
-        <EditForm Model="CreateProjectDTO" OnValidSubmit="CreateProject">
-            <DataAnnotationsValidator />
+<EditForm Model="CreateProjectDTO" OnValidSubmit="CreateProject">
+    <DataAnnotationsValidator />
+    <MatDialog @bind-IsOpen="@_createProjectDialogIsOpen">
+        <MatDialogTitle>Create Project</MatDialogTitle>
+        <MatDialogContent>
             <p>Enter the project details</p>
-            <MatTextField @bind-Value="CreateProjectDTO.Name" Label="Project Name"></MatTextField>
+            <MatTextField @bind-Value="CreateProjectDTO.Name" Label="Project Name" />
             <MatSelect @bind-Value="@(CreateProjectDTO.Type)" Label="Project Type">
                 <MatOption TValue="int" Value="(int)ProjectType.Attendance">Attendance</MatOption>
                 <MatOption TValue="int" Value="(int)ProjectType.DataCollection">Data Collection/Survey</MatOption>
             </MatSelect>
-        </EditForm>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@(_ => { _createProjectDialogIsOpen = false; })">No Thanks</MatButton>
+            <MatButton Type="submit">OK</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+</EditForm>
 
-
+<MatDialog @bind-IsOpen="@_deleteProjectDialogIsOpen">
+    <MatDialogTitle>Delete Project</MatDialogTitle>
+    <MatDialogContent>
+        <p>Are you sure you want to delete this project?</p>
+        <blockquote class="text-danger">@_projectToDelete.Name</blockquote>
     </MatDialogContent>
     <MatDialogActions>
-        <MatButton OnClick="@(e => { _dialogIsOpen = false; })">No Thanks</MatButton>
-        <MatButton Type="submit" OnClick="@CreateProject">OK</MatButton>
+        <MatButton OnClick="@(_ => { _deleteProjectDialogIsOpen = false; })">No Thanks</MatButton>
+        <MatButton Type="button" OnClick="@(() => DeleteProject(_projectToDelete.Id ?? throw new Exception("Invalid ID")))">Yes</MatButton>
     </MatDialogActions>
 </MatDialog>
 
 
 @code{
 
-    bool _dialogIsOpen;
+    bool _createProjectDialogIsOpen;
+    bool _deleteProjectDialogIsOpen;
+    (int? Id, string Name) _projectToDelete = (null, null);
 
     public CreateProjectDTO CreateProjectDTO { get; set; } = new();
 
@@ -75,53 +87,60 @@
     [Inject]
     protected IMatToaster Toaster { get; set; }
 
-    public List<Project> Projects { get; set; } = new()
-    {
-        //new Project
-        //{
-        //    Id = 1,
-        //    Name = "500L CPE",
-        //    Type = ProjectType.Attendance
-        //},
-        //new Project
-        //{
-        //    Id = 2,
-        //    Name = "ASUU Strike Survey",
-        //    Type = ProjectType.DataCollection
-        //},
-        //new Project
-        //{
-        //    Id = 3,
-        //    Name = "300L CPE",
-        //    Type = ProjectType.Attendance
-        //},
-        //new Project
-        //{
-        //    Id = 4,
-        //    Name = "Tech Jobs Survey",
-        //    Type = ProjectType.DataCollection
-        //},
-        //new Project
-        //{
-        //    Id = 5,
-        //    Name = "300L CPE",
-        //    Type = ProjectType.Attendance
-        //}
-    };
+    public List<Project> Projects { get; set; } = new();
 
     public string UserName { get; set; } = "";
 
-    public void Navigate(int id)
+    public void Navigate(int id, ProjectType projectType)
     {
-        NavigationManager.NavigateTo($"/attendance/project/{id}");
+        switch (projectType)
+        {
+            case ProjectType.Attendance:
+                NavigationManager.NavigateTo($"{ClientRoutes.AttendanceProject}/{id}");
+                break;
+
+            case ProjectType.DataCollection:
+                NavigationManager.NavigateTo($"{ClientRoutes.DataCollectionProject}/{id}");
+                break;
+        }
+    }
+
+    void OpenDeleteModal(int id)
+    {
+        _deleteProjectDialogIsOpen = true;
+        _projectToDelete = (id, Projects.First(x => x.Id == id).Name);
+    }
+
+    async Task DeleteProject(int id)
+    {
+        _deleteProjectDialogIsOpen = false;
+        _projectToDelete = (null, null);
+
+        var result = await ApiClient.DeleteProject(id);
+        if (result.Succeeded)
+        {
+            Toaster.Add("Project Deleted Successfully", MatToastType.Success);
+            await InitialiseDashboard();
+        }
+        else
+        {
+            Toaster.Add(result.Error, MatToastType.Danger);
+        }
+
     }
 
     protected override async Task OnInitializedAsync()
     {
+        await InitialiseDashboard();
+    }
+
+    async Task InitialiseDashboard()
+    {
         var result = await ApiClient.GetDashboard();
         if (result.Succeeded)
         {
-            InitialiseDashboard(result.Data);
+            Projects = result.Data.Projects;
+            UserName = result.Data.UserName;
         }
         else
         {
@@ -129,16 +148,14 @@
         }
     }
 
-    void InitialiseDashboard(DashboardDTO dto)
+    async Task CreateProject()
     {
-        Projects = dto.Projects;
-        UserName = dto.UserName;
-    }
-
-    public async Task CreateProject()
-    {
-        _dialogIsOpen = false;
-        Console.WriteLine(CreateProjectDTO.Type);
+        if ((ProjectType)CreateProjectDTO.Type == ProjectType.None)
+        {
+            Toaster.Add("Choose a valid project type", MatToastType.Danger);
+            return;
+        }
+        _createProjectDialogIsOpen = false;
 
         var result = await ApiClient.CreateProject(CreateProjectDTO.Name, (ProjectType)CreateProjectDTO.Type);
         if (result.Succeeded)

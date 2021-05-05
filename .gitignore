@@ -340,3 +340,4 @@ ASALocalRun/
 healthchecksdb
 /geesRecorderClient/Server/geesRecorder.db-shm
 /geesRecorderClient/Server/geesRecorder.db-wal
+/geesRecorderClient/Server/geesRecorder.db

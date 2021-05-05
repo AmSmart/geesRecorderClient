@@ -9,7 +9,7 @@ using geesRecorderClient.Server.Data;
 namespace geesRecorderClient.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20210422001403_DBSetup")]
+    [Migration("20210503010605_DBSetup")]
     partial class DBSetup
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -70,8 +70,8 @@ namespace geesRecorderClient.Server.Migrations
                     b.Property<string>("FingerprintIds")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("FirstName")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("FirstName")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("LastName")
                         .HasColumnType("TEXT");
@@ -125,6 +125,50 @@ namespace geesRecorderClient.Server.Migrations
                     b.ToTable("Projects");
 
                     b.HasDiscriminator<int>("Type").HasValue(0);
+                });
+
+            modelBuilder.Entity("geesRecorderClient.Shared.Models.Question", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("DataCollectionProjectId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Options")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("QuestionText")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DataCollectionProjectId");
+
+                    b.ToTable("Questions");
+                });
+
+            modelBuilder.Entity("geesRecorderClient.Shared.Models.Response", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Answers")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("DataCollectionProjectId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DataCollectionProjectId");
+
+                    b.ToTable("Responses");
                 });
 
             modelBuilder.Entity("geesRecorderClient.Shared.Models.ServerState", b =>
@@ -206,9 +250,34 @@ namespace geesRecorderClient.Server.Migrations
                     b.Navigation("Person");
                 });
 
+            modelBuilder.Entity("geesRecorderClient.Shared.Models.Question", b =>
+                {
+                    b.HasOne("geesRecorderClient.Shared.Models.DataCollectionProject", "DataCollectionProject")
+                        .WithMany("Questions")
+                        .HasForeignKey("DataCollectionProjectId");
+
+                    b.Navigation("DataCollectionProject");
+                });
+
+            modelBuilder.Entity("geesRecorderClient.Shared.Models.Response", b =>
+                {
+                    b.HasOne("geesRecorderClient.Shared.Models.DataCollectionProject", "DataCollectionProject")
+                        .WithMany("Responses")
+                        .HasForeignKey("DataCollectionProjectId");
+
+                    b.Navigation("DataCollectionProject");
+                });
+
             modelBuilder.Entity("geesRecorderClient.Shared.Models.AttendanceProject", b =>
                 {
                     b.Navigation("Events");
+                });
+
+            modelBuilder.Entity("geesRecorderClient.Shared.Models.DataCollectionProject", b =>
+                {
+                    b.Navigation("Questions");
+
+                    b.Navigation("Responses");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,0 +1,26 @@
+﻿<p><span class="font-weight-bold">@($"{QuestionIndex}.")</span> @QuestionText</p>
+<MatRadioGroup TValue="string" Value="AnswerText" ValueChanged="AnswerTextChanged" Items="Options">
+    <ItemTemplate>
+        <div>
+            <MatRadioButton Value="@context">@context</MatRadioButton>
+        </div>
+    </ItemTemplate>
+</MatRadioGroup>
+
+@code{
+
+    [Parameter]
+    public int QuestionIndex { get; set; }
+
+    [Parameter]
+    public string QuestionText { get; set; }
+
+    [Parameter]
+    public string AnswerText { get; set; }
+
+    [Parameter]
+    public List<string> Options { get; set; }
+    
+    [Parameter]
+    public EventCallback<string> AnswerTextChanged { get; set; }
+}

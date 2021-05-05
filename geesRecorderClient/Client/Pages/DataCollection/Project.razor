@@ -1,0 +1,143 @@
+﻿@page "/datacol/project/{Id:int}"
+
+@if (ProjectData is null)
+{
+    <Loading />
+}
+else if (ProjectData.Questions.Count == 0)
+{
+
+    <div class="text-center">
+        <p>There are no questions at the moment! Click the button below to add</p>
+        <MatButton OnClick="EditProject">Add Questions</MatButton>
+    </div>
+}
+else
+{
+    <div class="text-center">
+        <p class="font-weight-bold">
+            <span>Questions: @ProjectData.Questions.Count</span><span style="font-size: 2em">⁕</span>
+            <span>Responses: @ProjectData.Responses.Count</span><span style="font-size: 2em">⁕</span>
+            <span>Published: @(ProjectData.Published ? "Yes" : "No")</span>
+        </p>
+        <p>
+            <MatButton OnClick="EditProject" Disabled="ProjectData.Published" Raised="true">Edit</MatButton>
+            <MatButton OnClick="Publish" Disabled="ProjectData.Published" Raised="true">Publish</MatButton>
+            <MatButton OnClick="TakeResponses" Disabled="@(!ProjectData.Published)" Raised="true">Take Responses</MatButton>
+            <MatButton OnClick="() => _createProjectDialogIsOpen = true" Raised="true">Create New Survey With Existing Data</MatButton>
+        </p>
+    </div>
+    int iter = 0;
+    @foreach (var question in ProjectData.Questions)
+    {
+        if (question.Type == QuestionType.Text)
+        {
+            <TextQuestion QuestionText="@question.QuestionText" QuestionIndex="@(iter+1)" />
+        }
+        else if (question.Type == QuestionType.SingleChoice)
+        {
+            <SelectQuestion QuestionText="@question.QuestionText" QuestionIndex="@(iter+1)" Options="question.Options" />
+        }
+        else if (question.Type == QuestionType.MultiChoice)
+        {
+            <MultiSelectQuestion QuestionText="@question.QuestionText" QuestionIndex="@(iter+1)" Options="question.Options" />
+        }
+        iter++;
+    }
+
+    <MatDialog @bind-IsOpen="@_createProjectDialogIsOpen">
+        <MatDialogTitle>Create Project With Current Questions</MatDialogTitle>
+        <MatDialogContent>
+            <p>Enter the new project's name</p>
+            <MatTextField @bind-Value="_newProjectName" Label="Project Name" />
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="@(_ => { _createProjectDialogIsOpen = false; })">No Thanks</MatButton>
+            <MatButton OnClick="CreateSurveyFromCurrentData">OK</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+}
+
+
+@code{
+
+    bool _createProjectDialogIsOpen;
+    string _newProjectName = "";
+
+    [Parameter]
+    public int Id { get; set; }
+
+    public DataCollectionProject ProjectData { get; set; } = null;
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    [Inject]
+    public ApiClient ApiClient { get; set; }
+
+    [Inject]
+    public IMatToaster Toaster { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await InitialisePage();
+    }
+
+    async Task InitialisePage()
+    {
+        var result = await ApiClient.GetProject(Id);
+        if (result.Succeeded && result.Data is DataCollectionProject)
+        {
+            ProjectData = result.Data as DataCollectionProject;
+        }
+        else
+        {
+            throw new Exception();
+        }
+    }
+
+    public void EditProject()
+    {
+        NavigationManager.NavigateTo($"{ClientRoutes.EditDataCollection}/{Id}");
+    }
+
+    public async Task Publish()
+    {
+        if (ProjectData.Questions.Count < 1)
+        {
+            Toaster.Add("Cannot publish an empty survey", MatToastType.Danger);
+            return;
+        }
+        var result = await ApiClient.PublishDataColSurvey(Id);
+        if (result.Succeeded)
+        {
+            await InitialisePage();
+            Toaster.Add("Publish Successful, you can now take responses", MatToastType.Success);
+        }
+    }
+
+    public void TakeResponses()
+    {
+        NavigationManager.NavigateTo($"{ClientRoutes.TakeSurveyResponse}/{Id}");
+    }
+
+    public async Task CreateSurveyFromCurrentData()
+    {
+        if (string.IsNullOrWhiteSpace(_newProjectName))
+        {
+            Toaster.Add("Project Name cannot be empty", MatToastType.Danger);
+            return;
+        }
+
+        var result = await ApiClient.CreateDataColProjectWithQuestions(_newProjectName, ProjectData.Questions);
+        if (result.Succeeded)
+        {
+            NavigationManager.NavigateTo($"{ClientRoutes.DataCollectionProject}/{result.Data.Id}");
+        }
+        else
+        {
+            Toaster.Add(result.Error, MatToastType.Danger);
+        }
+    }
+
+}

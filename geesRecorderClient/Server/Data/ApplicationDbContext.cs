@@ -31,6 +31,10 @@ namespace geesRecorderClient.Server.Data
 
         public DbSet<ServerState> ServerState { get; set; }
 
+        public DbSet<Question> Questions { get; set; }
+
+        public DbSet<Response> Responses { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -41,6 +45,26 @@ namespace geesRecorderClient.Server.Data
                     v => JsonSerializer.Serialize(v, null),
                     v => JsonSerializer.Deserialize<List<int>>(v, null),
                     new ValueComparer<List<int>>(
+                        (c1, c2) => c1.SequenceEqual(c2),
+                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                        c => c.ToList()));
+
+            modelBuilder.Entity<Question>()
+                .Property(x => x.Options)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, null),
+                    v => JsonSerializer.Deserialize<List<string>>(v, null),
+                    new ValueComparer<List<string>>(
+                        (c1, c2) => c1.SequenceEqual(c2),
+                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                        c => c.ToList()));
+            
+            modelBuilder.Entity<Response>()
+                .Property(x => x.Answers)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, null),
+                    v => JsonSerializer.Deserialize<List<string>>(v, null),
+                    new ValueComparer<List<string>>(
                         (c1, c2) => c1.SequenceEqual(c2),
                         c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                         c => c.ToList()));

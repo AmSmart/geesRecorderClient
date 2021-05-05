@@ -1,0 +1,30 @@
+﻿<MatIcon Style="color: #102061; font-size: 2em" hidden="@_iconHidden" Class="clickable" @onclick="NavigateBackwards">
+    @MatIconNames.Keyboard_backspace
+</MatIcon>
+@code{
+
+    bool _iconHidden;
+    string _currentUrl;
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; }
+
+    public void NavigateBackwards()
+    {
+        if (_currentUrl.StartsWith(ClientRoutes.AttendanceProject) || _currentUrl.StartsWith(ClientRoutes.DataCollectionProject))
+        {
+            NavigationManager.NavigateTo(ClientRoutes.Dashboard);
+        }
+        // TODO: Finish implementation, preserve route parameters where possible
+    }
+
+    protected override Task OnInitializedAsync()
+    {
+        _currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        if (_currentUrl is ClientRoutes.Index or ClientRoutes.Dashboard)
+        {
+            _iconHidden = true;
+        }
+        return base.OnInitializedAsync();
+    }
+}

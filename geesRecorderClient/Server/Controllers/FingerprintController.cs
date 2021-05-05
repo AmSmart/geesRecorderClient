@@ -26,7 +26,6 @@ namespace geesRecorderClient.Server.Controllers
         {
             if(statusCode >= FingerprintConstants.TouchSensor1 && statusCode <= FingerprintConstants.Error)
             {
-                Console.WriteLine(statusCode);
                 await _hubContext.Clients.All.SendAsync("state", statusCode, FingerprintConstants.StatusMessages[statusCode]);
                 return Ok();
             }

@@ -8,6 +8,10 @@ namespace geesRecorderClient.Shared.Models
 {
     public class DataCollectionProject : Project
     {
-        
+        public virtual List<Question> Questions { get; set; }
+
+        public virtual List<Response> Responses { get; set; }
+
+        public bool Published { get; set; }
     }
 }

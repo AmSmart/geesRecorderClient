@@ -1,4 +1,4 @@
-﻿@page "/attendance/project/{Id:int}"
+@page "/attendance/project/{Id:int}"
 @using Models = geesRecorderClient.Shared.Models;
 
 @if (ProjectData is null)
@@ -7,17 +7,10 @@
 }
 else
 {
-    if (ProjectData.Type == ProjectType.Attendance)
-    {
         <MatButton OnClick="Enrol">Enrol</MatButton>
-
         <MatButton>Add Extra Fingerprint</MatButton>
-        
-
         <MatButton OnClick="MarkAttendance">Mark Attendance</MatButton>
-        
         <MatButton OnClick="(e => _dialogIsOpen = true)">New Event</MatButton>
-
 
         <MatDialog @bind-IsOpen="_dialogIsOpen">
             <MatDialogTitle>Add New Event</MatDialogTitle>
@@ -36,11 +29,6 @@ else
                 </EditForm>
             </MatDialogContent>
         </MatDialog>
-    }
-    else if (ProjectData.Type == ProjectType.DataCollection)
-    {
-
-    }
 }
 
 @code{
@@ -50,7 +38,7 @@ else
     [Parameter]
     public int Id { get; set; }
 
-    public Models.Project ProjectData { get; set; } = null;
+    public Models.AttendanceProject ProjectData { get; set; } = null;
 
     public AddNewEventDTO AddNewEventDTO { get; set; }
 
@@ -68,9 +56,9 @@ else
     protected override async Task OnInitializedAsync()
     {
         var result = await ApiClient.GetProject(Id);
-        if (result.Succeeded)
+        if (result.Succeeded && result.Data is AttendanceProject)
         {
-            ProjectData = result.Data;
+            ProjectData = result.Data as AttendanceProject;
             AddNewEventDTO = new()
             {
                 EventName = $"{ProjectData.Name} - {DateTime.Now:MM-dd-yyyy}",
@@ -86,13 +74,11 @@ else
 
     public void Enrol()
     {
-        Console.WriteLine("Enrol");
-        NavigationManager.NavigateTo($"/attendance/enrol/{Id}");
+        NavigationManager.NavigateTo($"{ClientRoutes.EnrolAttendance}/{Id}");
     }
 
     public void MarkAttendance()
     {
-        Console.WriteLine("MarkAttendance");
         NavigationManager.NavigateTo($"/attendance/mark/{Id}");
     }
 
