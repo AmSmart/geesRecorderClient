@@ -20,5 +20,20 @@ namespace geesRecorderClient.Server.Services
         {
             return base.OnConnectedAsync();
         }
+
+        public void Enrol()
+        {
+            _fingerprintRunner.Enrol();
+        }
+        
+        public void Search()
+        {
+            _fingerprintRunner.Search();
+        }
+        
+        public void Abort()
+        {
+            _fingerprintRunner.Abort();
+        }
     }
 }

@@ -15,16 +15,19 @@ namespace geesRecorderClient.Shared
         public const int FingerprintDoesNotMatch = 4;
         public const int EnrolmentSuccess = 5;
         public const int Error = 6;
+        public const int NoMatchFound = 7;
+        public const int FingerprintFound = 8;
 
         public static readonly Dictionary<int, string> StatusMessages = new()
         {
             { TouchSensor1, "Place your finger on the sensor" },
             { TouchSensor2, "Place the same finger on the sensor again" },
             { RemoveFinger, "Remove your finger from the sensor" },
-            { FingerprintExists, "This fingerprint has been registered already" },
+            { FingerprintExists, "Existing fingerprint detected" },
             { FingerprintDoesNotMatch, "This fingerprints do not match" },
             { EnrolmentSuccess, "Fingerprint enrolment is successful" },
-            { Error, "An unexpected error occurred" }
+            { Error, "An unexpected error occurred" },
+            { FingerprintFound, "Fingerprint found!" }
         };
     }
 }

@@ -67,19 +67,37 @@ namespace geesRecorderClient.Server.Controllers
         [HttpPost("enrol")]
         public async Task<IActionResult> EnrolAttendant(EnrolPersonDTO dto)
         {
-            _dbContext.Persons.Add(new Person
+            Person person;
+            var attendanceProject = await _dbContext.AttendanceProjects.FindAsync(dto.ProjectId);
+            Console.WriteLine(dto.PersonAlreadyExists);
+            if (dto.PersonAlreadyExists)
             {
-                AttendanceProjects = new List<AttendanceProject>
+                bool personExistsInProject = attendanceProject.Persons
+                    .SelectMany(x => x.FingerprintIds)
+                    .Contains(dto.FingerPrintId);
+                if (personExistsInProject)
                 {
-                    new AttendanceProject{ Id = dto.ProjectId }
-                },
-                CustomId = dto.CustomId,
-                FingerprintIds = new List<int> { dto.FingerPrintId },
-                FirstName = dto.FirstName,
-                LastName = dto.LastName
-            });
-            await _dbContext.SaveChangesAsync();
-            return Ok();
+                    return BadRequest("This person has already been enrolled to this project");
+                }
+                person = _dbContext.Persons.FirstOrDefault(x => x.FingerprintIds.Contains(dto.FingerPrintId));
+                attendanceProject.Persons.Add(person);
+                await _dbContext.SaveChangesAsync();
+                return Ok();
+            }
+            else
+            {
+                person = new Person
+                {
+                    CustomId = dto.CustomId,
+                    FingerprintIds = new List<int> { dto.FingerPrintId },
+                    FirstName = dto.FirstName,
+                    LastName = dto.LastName
+                };
+                attendanceProject.Persons.Add(person);
+                await _dbContext.SaveChangesAsync();
+                return Ok();
+            }
+            
         }
         
         [HttpPost("enrol-new")]

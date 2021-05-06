@@ -16,10 +16,13 @@ namespace geesRecorderClient.Shared.DTOs
         [Required]
         public string LastName { get; set; }
 
+        [Required]
         public string CustomId { get; set; }        
 
         public int ProjectId { get; set; }
 
         public int FingerPrintId { get; set; }
+
+        public bool PersonAlreadyExists { get; set; }
     }
 }

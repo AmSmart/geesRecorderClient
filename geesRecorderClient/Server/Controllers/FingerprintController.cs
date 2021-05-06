@@ -32,9 +32,16 @@ namespace geesRecorderClient.Server.Controllers
             return BadRequest();
         }
 
-        [HttpPost("id")]
-        public async Task<IActionResult> FingerprintId([FromBody] int id)
-        {
+        [HttpPost("enrol/id")]
+        public async Task<IActionResult> EnrolFingerprint(int id, bool exists)
+        {            
+            await _hubContext.Clients.All.SendAsync("id", id, exists);
+            return Ok();
+        }
+        
+        [HttpPost("search/id")]
+        public async Task<IActionResult> SearchFingerprint(int id)
+        {            
             await _hubContext.Clients.All.SendAsync("id", id);
             return Ok();
         }

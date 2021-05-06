@@ -1,30 +1,67 @@
-﻿<MatIcon Style="color: #102061; font-size: 2em" hidden="@_iconHidden" Class="clickable" @onclick="NavigateBackwards">
+﻿@implements IDisposable
+
+<MatIcon Style="color: #102061; font-size: 2em" hidden="@_iconHidden" Class="clickable" @onclick="NavigateBackwards">
     @MatIconNames.Keyboard_backspace
 </MatIcon>
 @code{
 
     bool _iconHidden;
     string _currentUrl;
+    string _urlRemainder;
 
     [Inject]
     public NavigationManager NavigationManager { get; set; }
 
     public void NavigateBackwards()
     {
-        if (_currentUrl.StartsWith(ClientRoutes.AttendanceProject) || _currentUrl.StartsWith(ClientRoutes.DataCollectionProject))
+        if (_currentUrl.StartsWith(ClientRoutes.AttendanceProject) || _currentUrl.StartsWith(ClientRoutes.DataCollectionProject)
+            || _currentUrl.StartsWith(ClientRoutes.About))
         {
+            Console.WriteLine(_currentUrl.StartsWith(ClientRoutes.AttendanceProject));
             NavigationManager.NavigateTo(ClientRoutes.Dashboard);
         }
-        // TODO: Finish implementation, preserve route parameters where possible
+        else if (_currentUrl.StartsWith(ClientRoutes.EnrolAttendance) || _currentUrl.StartsWith(ClientRoutes.MarkAttendance))
+        {
+            _urlRemainder = _currentUrl.Substring(_currentUrl.LastIndexOf('/'));
+            NavigationManager.NavigateTo($"{ClientRoutes.AttendanceProject}{_urlRemainder}");
+        }
+        else if (_currentUrl.StartsWith(ClientRoutes.EditDataCollection) || _currentUrl.StartsWith(ClientRoutes.TakeSurveyResponse))
+        {
+            _urlRemainder = _currentUrl.Substring(_currentUrl.LastIndexOf('/'));
+            NavigationManager.NavigateTo($"{ClientRoutes.DataCollectionProject}{_urlRemainder}");
+        }
+        // TODO: This implementaion has many possible flaws, improve later
     }
 
     protected override Task OnInitializedAsync()
     {
         _currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        SetIconVisibility();
+        NavigationManager.LocationChanged += HandleLocationChanged;
+        return base.OnInitializedAsync();
+    }
+
+    private void HandleLocationChanged(object sender, LocationChangedEventArgs e)
+    {
+        _currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        SetIconVisibility();
+        StateHasChanged();
+    }
+
+    public void SetIconVisibility()
+    {
         if (_currentUrl is ClientRoutes.Index or ClientRoutes.Dashboard)
         {
             _iconHidden = true;
         }
-        return base.OnInitializedAsync();
+        else
+        {
+            _iconHidden = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= HandleLocationChanged;
     }
 }

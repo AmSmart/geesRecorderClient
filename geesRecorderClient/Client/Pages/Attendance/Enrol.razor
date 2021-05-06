@@ -4,7 +4,7 @@
 @using Microsoft.AspNetCore.SignalR.Client
 @using System.IO
 
-<EditForm Model="EnrolPersonDTO" OnValidSubmit="EnrolPerson">
+<EditForm Model="EnrolPersonDTO" OnValidSubmit="BeginEnrolment">
     <DataAnnotationsValidator />
     <p>Enter the person's details</p>
     <MatTextField @bind-Value="EnrolPersonDTO.FirstName" Label="First Name" />
@@ -13,41 +13,38 @@
     <MatButton type="submit">Enrol</MatButton>
 </EditForm>
 
-<MatDialog @bind-IsOpen="@_dialogIsOpen">
+<MatDialog CanBeClosed="false" @bind-IsOpen="@_dialogIsOpen">
     <MatDialogTitle>Scan your finger</MatDialogTitle>
     <MatDialogContent>
-        @*<EditForm>
 
-            </EditForm>*@
         <p>Fingerprint Scanner Status: @_statusMessage</p>
-
+        <Loading />
     </MatDialogContent>
     <MatDialogActions>
-        <MatButton OnClick="@(e => { _dialogIsOpen = false; })">No Thanks</MatButton>
-        <MatButton Type="submit">OK</MatButton>
+        <MatButton OnClick="@(async() => await AbortFingerprintOperations())">Abort</MatButton>
     </MatDialogActions>
 </MatDialog>
 
 @code{
 
+    bool _dialogIsOpen;
+
     [Parameter]
     public int ProjectId { get; set; }
 
-    bool _dialogIsOpen;
+    [Inject]
+    public ApiClient ApiClient { get; set; }
+
+    [Inject]
+    public IMatToaster Toaster { get; set; }
 
     public Enrol()
     {
-        //_url = Path.Combine(NavigationManager.BaseUri, "fingerprinthub");//.Replace("\\", "/");
+        // TODO: _url = Path.Combine(NavigationManager.BaseUri, "fingerprinthub");//.Replace("\\", "/");
         _url = "https://localhost:5001/fingerprinthub";
     }
 
-    public void EnrolPerson()
-    {
-        _dialogIsOpen = true;
-        Console.WriteLine(EnrolPersonDTO.FirstName);
-    }
-
-    public EnrolPersonDTO EnrolPersonDTO { get; set; } = new EnrolPersonDTO();
+    public EnrolPersonDTO EnrolPersonDTO { get; set; } = new();
 
     [Inject]
     public NavigationManager NavigationManager { get; set; }
@@ -55,7 +52,7 @@
     HubConnection _connection = null;
     string _url;
 
-    string _statusMessage = "Sensor State Unknown!";
+    string _statusMessage = "Initialising...";
 
     private async Task ConnectToServer()
     {
@@ -68,9 +65,27 @@
             await _connection.StartAsync();
         };
 
-        _connection.On<int, string>("state", (code, message) =>
+        _connection.On<int, string>("state", async (code, message) =>
         {
             _statusMessage = message;
+            if(code == FingerprintConstants.Error)
+            {
+                Toaster.Add("Enrolment Failed!", MatToastType.Danger);
+                await AbortFingerprintOperations();
+            }
+            StateHasChanged();
+        });
+
+        _connection.On<int, bool>("id", async (id, exists) =>
+        {
+            EnrolPersonDTO = EnrolPersonDTO with
+            {
+                FingerPrintId = id,
+                ProjectId = ProjectId,
+                PersonAlreadyExists = exists
+            };
+            _statusMessage = "Scan Successful, Saving your data";
+            await CompleteEnrolment();
             StateHasChanged();
         });
 
@@ -82,11 +97,37 @@
     protected override async Task OnInitializedAsync()
     {
         await ConnectToServer();
-        //await _connection.InvokeAsync("enrol");
     }
 
     public async ValueTask DisposeAsync()
     {
         await _connection.DisposeAsync();
+    }
+
+    public async Task AbortFingerprintOperations()
+    {
+        await _connection.SendAsync("Abort");
+        _dialogIsOpen = false;
+    }
+
+    public async Task BeginEnrolment()
+    {
+        await _connection.SendAsync("Enrol");
+        _dialogIsOpen = true;
+    }
+
+    public async Task CompleteEnrolment()
+    {
+        Console.WriteLine(EnrolPersonDTO);
+        var result = await ApiClient.EnrolPerson(EnrolPersonDTO);
+        if (result.Succeeded)
+        {
+            Toaster.Add("Enrolment Successful!", MatToastType.Success);
+        }
+        else
+        {
+            Toaster.Add(result.Error, MatToastType.Danger);
+        }
+        await AbortFingerprintOperations();
     }
 }

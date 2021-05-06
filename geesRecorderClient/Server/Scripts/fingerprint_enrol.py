@@ -4,22 +4,22 @@ from pyfingerprint.pyfingerprint import PyFingerprint
 from pyfingerprint.pyfingerprint import FINGERPRINT_CHARBUFFER1
 from pyfingerprint.pyfingerprint import FINGERPRINT_CHARBUFFER2
 
-STATE_POST_URL = 'https://localhost:5001/fingerprint/state/'
-ID_POST_URL = 'https://localhost:5001/fingerprint/id/'
+STATE_POST_URL = 'https://localhost:5001/fingerprint/state'
+ID_POST_URL = 'https://localhost:5001/fingerprint/enrol/id'
 
 def format_state_url(statusCode):
     return f'{STATE_POST_URL}?statusCode={statusCode}'
 
-def format_id_url(id):
-    return f'{ID_POST_URL}?statusCode={id}'
+def format_id_url(id,exists):
+    return f'{ID_POST_URL}?id={id}&exists={exists}'
 
 
 ## Enrolls new finger
 ##
 
-## Tries to initialize the sensor
+## Tries to initialize the sensor - '/dev/ttyUSB0' - (Linux port)
 try:
-    f = PyFingerprint('/dev/ttyUSB0', 57600, 0xFFFFFFFF, 0x00000000)
+    f = PyFingerprint('COM12', 57600, 0xFFFFFFFF, 0x00000000)
 
     if ( f.verifyPassword() == False ):
         raise ValueError('The given fingerprint sensor password is wrong!')
@@ -54,7 +54,7 @@ try:
     if ( positionNumber >= 0 ):
 
         requests.post(format_state_url(3), verify=False)
-        requests.post(format_id_url(positionNumber), verify=False)
+        requests.post(format_id_url(positionNumber, True), verify=False)
 
         print('Template already exists at position #' + str(positionNumber))
         exit(0)
@@ -88,7 +88,7 @@ try:
     print('New template position #' + str(positionNumber))
 
     requests.post(format_state_url(5), verify=False)
-    requests.post(format_id_url(positionNumber), verify=False)
+    requests.post(format_id_url(positionNumber,False), verify=False)
 
 except Exception as e:
     print('Operation failed!')
