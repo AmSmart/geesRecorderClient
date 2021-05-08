@@ -7,33 +7,159 @@
 }
 else
 {
-        <MatButton OnClick="Enrol">Enrol</MatButton>
-        <MatButton>Add Extra Fingerprint</MatButton>
-        <MatButton OnClick="MarkAttendance">Mark Attendance</MatButton>
-        <MatButton OnClick="(e => _dialogIsOpen = true)">New Event</MatButton>
+    <div class="text-center mb-1">
+        <MatButton Outlined="true" OnClick="Enrol">Enrol</MatButton>
+        <MatButton Outlined="true">Add Extra Fingerprint</MatButton>
+        <MatButton Outlined="true" OnClick="SelectEventToMark">Mark Attendance</MatButton>
+        <MatButton Outlined="true" OnClick="(e => _addEventDialogIsOpen = true)">New Event</MatButton>
+    </div>
+    <MatDivider />
+    <br />
 
-        <MatDialog @bind-IsOpen="_dialogIsOpen">
-            <MatDialogTitle>Add New Event</MatDialogTitle>
-            <MatDialogContent>
-                <EditForm Model="AddNewEventDTO" OnValidSubmit="AddEvent">
-                    <p>Enter the Event details</p>
+    <MatTabGroup>
+        <MatTab Label="Events">
+            <div class="text-center">
+                <MatList SingleSelection="true">
+                    @for (int i = 0; i < ProjectData.Events.Count; i++)
+                    {
+                        int iter = i;
+                        <MatBlazor.MatListItem OnClick="() => ShowEventDetails(ProjectData.Events[iter].Id)">
+                            <MatListItemText>
+                                @($"{ProjectData.Events[iter].Name}: Start " +
+                                $"Time - {ProjectData.Events[iter].Start}, End Time - {ProjectData.Events[iter].End}")
+                            </MatListItemText>
+                        </MatBlazor.MatListItem>
+                    }
+                </MatList>
+            </div>
+        </MatTab>
 
-                    <MatTextField @bind-Value="AddNewEventDTO.EventName" Label="Event Name" />
-                    <p>
-                        <MatDatePicker @bind-Value="AddNewEventDTO.Start" EnableTime="true" Label="Start Time"></MatDatePicker>
-                    </p>
-                    <p>
-                        <MatDatePicker @bind-Value="AddNewEventDTO.End" EnableTime="true" Label="End Time"></MatDatePicker>
-                    </p>
-                    <MatButton type="submit">Add Event</MatButton>
-                </EditForm>
-            </MatDialogContent>
-        </MatDialog>
+        <MatTab Label="People">
+            <div class="text-center">
+                <MatList SingleSelection="true">
+                    @for (int i = 0; i < ProjectData.Persons.Count; i++)
+                    {
+                        int iter = i;
+                        <MatBlazor.MatListItem OnClick="() => ShowPersonDetails(ProjectData.Persons[iter].Id)">
+                            <MatListItemText>
+                                @($"{ProjectData.Persons[iter].FirstName} {ProjectData.Persons[iter].FirstName} - {ProjectData.Persons[iter].CustomId}")
+                            </MatListItemText>
+                        </MatBlazor.MatListItem>
+                    }
+                </MatList>
+            </div>
+        </MatTab>
+    </MatTabGroup>
+
+    <MatDialog @bind-IsOpen="_addEventDialogIsOpen">
+        <MatDialogTitle>Add New Event</MatDialogTitle>
+        <MatDialogContent>
+            <EditForm Model="AddNewEventDTO" OnValidSubmit="AddEvent">
+                <p>Enter the Event details</p>
+
+                <MatTextField @bind-Value="AddNewEventDTO.EventName" Label="Event Name" />
+                <p>
+                    <MatDatePicker @bind-Value="AddNewEventDTO.Start" EnableTime="true" Label="Start Time"></MatDatePicker>
+                </p>
+                <p>
+                    <MatDatePicker @bind-Value="AddNewEventDTO.End" EnableTime="true" Label="End Time"></MatDatePicker>
+                </p>
+                <MatButton type="submit">Add Event</MatButton>
+            </EditForm>
+        </MatDialogContent>
+    </MatDialog>
+
+    <MatDialog CanBeClosed="false" @bind-IsOpen="_eventDetailsDialogIsOpen">
+        <MatDialogTitle>Event Details</MatDialogTitle>
+        <MatDialogContent>
+            @if (EventDetailsDTO is null)
+            {
+                <Loading />
+            }
+            else
+            {
+                <p>
+                    <span class="font-weight-bold">Name:</span>
+                    @EventDetailsDTO.EventName
+                </p>
+                <p>
+                    <span class="font-weight-bold">Start Time:</span>
+                    @EventDetailsDTO.StartTime
+                </p>
+                <p>
+                    <span class="font-weight-bold">End Time:</span>
+                    @EventDetailsDTO.EndTime
+                </p>
+                <p>
+                    <span class="font-weight-bold">Total Attendees:</span>
+                    @EventDetailsDTO.TotalAttendeesCount
+                </p>
+                <p>
+                    <span class="font-weight-bold">Mean Arrival Time:</span>
+                    @(EventDetailsDTO.MeanArrivalTime == null ? "Inadequate information!" : $"{EventDetailsDTO.MeanArrivalTime}")
+                </p>
+                <p>
+                    <span class="font-weight-bold">Mean Departure Time:</span>
+                    @(EventDetailsDTO.MeanDepartureTime == null ? "Inadequate information!" : $"{EventDetailsDTO.MeanDepartureTime}")
+                </p>
+            }
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="HideEventDetails">Done</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+
+    <MatDialog CanBeClosed="false" @bind-IsOpen="_personDetailsDialogIsOpen">
+        <MatDialogTitle>Person Details</MatDialogTitle>
+        <MatDialogContent>
+            @if (PersonDetailsDTO is null)
+            {
+                <Loading />
+            }
+            else
+            {
+                <p>
+                    <span class="font-weight-bold">Name:</span>
+                    @PersonDetailsDTO.Name
+                </p>
+                <p>
+                    <span class="font-weight-bold">Total Events Attended:</span>
+                    @PersonDetailsDTO.TotalEventsAttended
+                </p>
+                <p>
+                    <span class="font-weight-bold">Total Events Missed:</span>
+                    @PersonDetailsDTO.TotalEventsMissed
+                </p>
+            }
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="HidePersonDetails">Done</MatButton>
+        </MatDialogActions>
+    </MatDialog>
+
+    <MatDialog CanBeClosed="false" @bind-IsOpen="_markAttendanceDialogIsOpen">
+        <MatDialogTitle>Choose an Event</MatDialogTitle>
+        <MatDialogContent>
+            <MatSelect Label="Choose Event" @bind-Value="_selectedEventId">
+                @foreach (var attendanceEvent in ActiveEvents)
+                {
+                    <MatOption TValue="int" Value="attendanceEvent.Id">@attendanceEvent.Name</MatOption>
+                }
+            </MatSelect>
+        </MatDialogContent>
+        <MatDialogActions>
+            <MatButton OnClick="() => MarkAttendance(_selectedEventId)">Done</MatButton>
+        </MatDialogActions>
+    </MatDialog>
 }
 
 @code{
 
-    bool _dialogIsOpen = false;
+    bool _addEventDialogIsOpen;
+    bool _personDetailsDialogIsOpen;
+    bool _eventDetailsDialogIsOpen;
+    bool _markAttendanceDialogIsOpen;
+    int _selectedEventId;
 
     [Parameter]
     public int Id { get; set; }
@@ -42,7 +168,11 @@ else
 
     public AddNewEventDTO AddNewEventDTO { get; set; }
 
-    //public MarkAttendanceDTO MarkAttendanceDTO { get; set; } 
+    public EventDetailsDTO EventDetailsDTO { get; set; } = null;
+
+    public PersonDetailsDTO PersonDetailsDTO { get; set; } = null;
+
+    public List<Event> ActiveEvents { get; set; } = new();
 
     [Inject]
     public NavigationManager NavigationManager { get; set; }
@@ -55,10 +185,16 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await InitialisePage();
+    }
+
+    async Task InitialisePage()
+    {
         var result = await ApiClient.GetProject(Id);
         if (result.Succeeded && result.Data is AttendanceProject)
         {
             ProjectData = result.Data as AttendanceProject;
+            ProjectData.Events = ProjectData.Events.OrderByDescending(x => x.Start).ToList();
             AddNewEventDTO = new()
             {
                 EventName = $"{ProjectData.Name} - {DateTime.Now:MM-dd-yyyy}",
@@ -77,23 +213,78 @@ else
         NavigationManager.NavigateTo($"{ClientRoutes.EnrolAttendance}/{Id}");
     }
 
-    public void MarkAttendance()
+    public void MarkAttendance(int eventId)
     {
-        NavigationManager.NavigateTo($"/attendance/mark/{Id}");
+        _markAttendanceDialogIsOpen = false;
+        var queryParams = new Dictionary<string, string>
+{
+            {"eventId", $"{eventId}"}
+        };
+        NavigationManager.NavigateTo(QueryHelpers.AddQueryString($"{ClientRoutes.MarkAttendance}/{Id}", queryParams));
     }
-
-
 
     public async Task AddEvent()
     {
-        var result = await ApiClient.AddNewEvent(AddNewEventDTO);
+        var result = await ApiClient.AddNewEvent(AddNewEventDTO with { ProjectId = Id });
         if (result.Succeeded)
         {
             Toaster.Add("Event Added Successfully", MatToastType.Success);
+            _addEventDialogIsOpen = false;
+            await InitialisePage();
         }
         else
         {
             Toaster.Add("Failed to add event", MatToastType.Danger);
         }
+    }
+
+    public async Task ShowEventDetails(int eventId)
+    {
+        Console.WriteLine("test");
+        _eventDetailsDialogIsOpen = true;
+        var result = await ApiClient.GetEventDetails(eventId);
+        if (result.Succeeded)
+        {
+            EventDetailsDTO = result.Data;
+        }
+        else
+        {
+            _eventDetailsDialogIsOpen = false;
+            Toaster.Add(result.Error, MatToastType.Danger);
+        }
+    }
+
+    public async Task ShowPersonDetails(int personId)
+    {
+        _personDetailsDialogIsOpen = true;
+        var result = await ApiClient.GetPersonDetails(personId, Id);
+        if (result.Succeeded)
+        {
+            PersonDetailsDTO = result.Data;
+        }
+        else
+        {
+            _eventDetailsDialogIsOpen = false;
+            Toaster.Add(result.Error, MatToastType.Danger);
+        }
+    }
+
+    public void HideEventDetails()
+    {
+        EventDetailsDTO = null;
+        _eventDetailsDialogIsOpen = false;
+    }
+
+    public void HidePersonDetails()
+    {
+        PersonDetailsDTO = null;
+        _personDetailsDialogIsOpen = false;
+    }
+
+    public void SelectEventToMark()
+    {
+        ActiveEvents = ProjectData.Events.Where(x => DateTime.UtcNow.Ticks > x.Start.Ticks && DateTime.UtcNow.Ticks < x.End.Ticks)
+            .ToList();
+        _markAttendanceDialogIsOpen = true;
     }
 }

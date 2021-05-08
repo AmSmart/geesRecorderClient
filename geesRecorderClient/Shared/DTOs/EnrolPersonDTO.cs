@@ -21,7 +21,7 @@ namespace geesRecorderClient.Shared.DTOs
 
         public int ProjectId { get; set; }
 
-        public int FingerPrintId { get; set; }
+        public int FingerprintId { get; set; }
 
         public bool PersonAlreadyExists { get; set; }
     }

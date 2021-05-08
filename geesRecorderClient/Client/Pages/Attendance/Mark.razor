@@ -2,39 +2,35 @@
 @implements IAsyncDisposable
 @inject HttpClient HttpClient
 @using Microsoft.AspNetCore.SignalR.Client
-@using System.IO
+@using System.IO 
 
-<EditForm Model="MarkAttendanceDTO" OnValidSubmit="MarkAttendance">
-    <DataAnnotationsValidator />
-    <p>Enter the person's details</p>
-    <MatTextField @bind-Value="MarkAttendanceDTO.PersonId" Label="PersonId" />
-    @* <MatSelectItem @bind-Value="MarkAttendanceDTO.EventId" Items="@AddEvent">
-        </MatSelectItem> *@
-    
-    <MatButton type="submit">Mark</MatButton>
-</EditForm>
+<div class="text-center">
+    <span>
+        <MatButton OnClick="@(async () => { _markIn = true; await BeginMarking(); })">Mark In</MatButton>
+        <MatButton OnClick="@(async () => { _markIn = false; await BeginMarking(); })">Mark Out</MatButton>
+    </span>
+</div>
 
-<MatDialog @bind-IsOpen="@_dialogIsOpen">
+<MatDialog CanBeClosed="false" @bind-IsOpen="@_dialogIsOpen">
     <MatDialogTitle>Scan your finger</MatDialogTitle>
     <MatDialogContent>
-        @*<EditForm>
 
-            </EditForm>*@
         <p>Fingerprint Scanner Status: @_statusMessage</p>
-
+        <Loading />
     </MatDialogContent>
     <MatDialogActions>
-        <MatButton OnClick="@(e => { _dialogIsOpen = false; })">No Thanks</MatButton>
-        <MatButton Type="submit">OK</MatButton>
+        <MatButton OnClick="@(async() => await AbortFingerprintOperations())">Abort</MatButton>
     </MatDialogActions>
 </MatDialog>
 
 @code{
 
-    [Parameter]
-    public int ProjectId { get; set; }
-
     bool _dialogIsOpen;
+    bool _markIn;
+    HubConnection _connection = null;
+    string _url;
+    string _statusMessage = "Initialising...";
+    int _eventId;
 
     public Mark()
     {
@@ -42,20 +38,24 @@
         _url = "https://localhost:5001/fingerprinthub";
     }
 
-    public void MarkAttendance()
-    {
-        _dialogIsOpen = true;
-    }
+    [Parameter]
+    public int ProjectId { get; set; }
 
-    public MarkAttendanceDTO MarkAttendanceDTO { get; set; } = new MarkAttendanceDTO();
+    public MarkAttendanceDTO MarkAttendanceDTO { get; set; }
 
     [Inject]
     public NavigationManager NavigationManager { get; set; }
 
-    HubConnection _connection = null;
-    string _url;
+    [Inject]
+    public IMatToaster Toaster { get; set; }
 
-    string _statusMessage = "Sensor State Unknown!";
+    [Inject]
+    public ApiClient ApiClient { get; set; }
+
+    public void MarkAttendance()
+    {
+        _dialogIsOpen = true;
+    }
 
     private async Task ConnectToServer()
     {
@@ -68,9 +68,27 @@
             await _connection.StartAsync();
         };
 
-        _connection.On<int, string>("state", (code, message) =>
+        _connection.On<int, string>("state", async (code, message) =>
         {
             _statusMessage = message;
+            if (code == FingerprintConstants.Error)
+            {
+                Toaster.Add("Fingerprint Scan Failed!", MatToastType.Danger);
+                await AbortFingerprintOperations();
+            }
+            StateHasChanged();
+        });
+
+        _connection.On<int>("id", async (id) =>
+        {
+            MarkAttendanceDTO = new()
+            {
+                AttendanceTimeStamp = DateTime.UtcNow,
+                EventId = _eventId,
+                FingerprintId = id
+            };
+            _statusMessage = "Scan Successful, Marking your attendance";
+            await CompleteMarking();
             StateHasChanged();
         });
 
@@ -81,12 +99,48 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _eventId = NavigationManager.ExtractQueryStringByKey<int>("eventId");
         await ConnectToServer();
-        //await _connection.InvokeAsync("enrol");
     }
 
     public async ValueTask DisposeAsync()
     {
         await _connection.DisposeAsync();
+    }
+
+    public async Task AbortFingerprintOperations()
+    {
+        await _connection.SendAsync("Abort");
+        _dialogIsOpen = false;
+    }
+
+    public async Task BeginMarking()
+    {
+        await _connection.SendAsync("Search");
+        _dialogIsOpen = true;
+    }
+
+    public async Task CompleteMarking()
+    {
+        OperationResult result;
+
+        if (_markIn)
+        {
+            result = await ApiClient.MarkAttendanceIn(MarkAttendanceDTO);
+        }
+        else
+        {
+            result = await ApiClient.MarkAttendanceOut(MarkAttendanceDTO);
+        }
+
+        if (result.Succeeded)
+        {
+            Toaster.Add("Attendance Marked Successfully!", MatToastType.Success);
+        }
+        else
+        {
+            Toaster.Add(result.Error, MatToastType.Danger);
+        }
+        await AbortFingerprintOperations();
     }
 }

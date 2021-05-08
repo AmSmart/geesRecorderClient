@@ -74,6 +74,16 @@ namespace geesRecorderClient.Server.Data
                 .HasValue<Project>(ProjectType.None)
                 .HasValue<AttendanceProject>(ProjectType.Attendance)
                 .HasValue<DataCollectionProject>(ProjectType.DataCollection);
+
+            public async Task CacheDataCollectionProjects()
+            {
+
+            }
+            
+            public async Task CacheAttendanceProjects()
+            {
+
+            }
         }
     }
 }

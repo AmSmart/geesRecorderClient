@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace geesRecorderClient.Shared.Models
@@ -16,6 +17,7 @@ namespace geesRecorderClient.Shared.Models
 
         public DateTime End { get; set; }
 
+        [JsonIgnore]
         public virtual AttendanceProject AttendanceProject { get; set; }
     }
 }

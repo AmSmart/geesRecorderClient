@@ -28,6 +28,15 @@
 @code{
 
     bool _dialogIsOpen;
+    HubConnection _connection = null;
+    string _url;
+    string _statusMessage = "Initialising...";
+
+    public Enrol()
+    {
+        // TODO: _url = Path.Combine(NavigationManager.BaseUri, "fingerprinthub");//.Replace("\\", "/");
+        _url = "https://localhost:5001/fingerprinthub";
+    }
 
     [Parameter]
     public int ProjectId { get; set; }
@@ -38,21 +47,10 @@
     [Inject]
     public IMatToaster Toaster { get; set; }
 
-    public Enrol()
-    {
-        // TODO: _url = Path.Combine(NavigationManager.BaseUri, "fingerprinthub");//.Replace("\\", "/");
-        _url = "https://localhost:5001/fingerprinthub";
-    }
-
     public EnrolPersonDTO EnrolPersonDTO { get; set; } = new();
 
     [Inject]
     public NavigationManager NavigationManager { get; set; }
-
-    HubConnection _connection = null;
-    string _url;
-
-    string _statusMessage = "Initialising...";
 
     private async Task ConnectToServer()
     {
@@ -80,7 +78,7 @@
         {
             EnrolPersonDTO = EnrolPersonDTO with
             {
-                FingerPrintId = id,
+                FingerprintId = id,
                 ProjectId = ProjectId,
                 PersonAlreadyExists = exists
             };
@@ -117,11 +115,11 @@
     }
 
     public async Task CompleteEnrolment()
-    {
-        Console.WriteLine(EnrolPersonDTO);
+    {        
         var result = await ApiClient.EnrolPerson(EnrolPersonDTO);
         if (result.Succeeded)
         {
+            EnrolPersonDTO = new();
             Toaster.Add("Enrolment Successful!", MatToastType.Success);
         }
         else

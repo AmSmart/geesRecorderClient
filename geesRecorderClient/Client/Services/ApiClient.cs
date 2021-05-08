@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace geesRecorderClient.Client.Services
@@ -16,7 +17,8 @@ namespace geesRecorderClient.Client.Services
         private readonly HttpClient _httpClient;
         private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
         {
-            PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 
         public ApiClient(HttpClient httpClient)
@@ -115,6 +117,34 @@ namespace geesRecorderClient.Client.Services
                 return new OperationDataResult<Project>(project);
             }
             return new OperationDataResult<Project>(error: resultContent);
+        }
+        
+        public async Task<OperationDataResult<PersonDetailsDTO>> GetPersonDetails(int personId, int projectId)
+        {
+            var result = await _httpClient.GetAsync($"attendance/person?personId={personId}&projectId={projectId}");
+            string resultContent = await result.Content.ReadAsStringAsync();
+
+            if (result.IsSuccessStatusCode)
+            {
+                var personDetails = JsonSerializer.Deserialize<PersonDetailsDTO>(resultContent, _jsonOptions);                
+
+                return new OperationDataResult<PersonDetailsDTO>(personDetails);
+            }
+            return new OperationDataResult<PersonDetailsDTO>(error: resultContent);
+        }
+        
+        public async Task<OperationDataResult<EventDetailsDTO>> GetEventDetails(int eventId)
+        {
+            var result = await _httpClient.GetAsync($"attendance/event?eventId={eventId}");
+            string resultContent = await result.Content.ReadAsStringAsync();
+
+            if (result.IsSuccessStatusCode)
+            {
+                var eventDetails = JsonSerializer.Deserialize<EventDetailsDTO>(resultContent, _jsonOptions);                
+
+                return new OperationDataResult<EventDetailsDTO>(eventDetails);
+            }
+            return new OperationDataResult<EventDetailsDTO>(error: resultContent);
         }
         
         public async Task<OperationResult> DeleteProject(int id)

@@ -8,7 +8,7 @@ namespace geesRecorderClient.Shared.DTOs
 {
     public class MarkAttendanceDTO
     {
-        public int PersonId { get; set; }
+        public int FingerprintId { get; set; }
 
         public int EventId { get; set; }
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace geesRecorderClient.Shared.Models
@@ -20,6 +21,7 @@ namespace geesRecorderClient.Shared.Models
         // TODO: Annotate as key
         public string CustomId { get; set; }
 
+        [JsonIgnore]
         public virtual List<AttendanceProject> AttendanceProjects { get; set; }
     }
 }
